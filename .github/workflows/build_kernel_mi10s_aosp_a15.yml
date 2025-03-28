@@ -1,4 +1,4 @@
-name: Build Kernel Xiaomi 10S (Based-AOSP Android 15) with KSU and SUSFS
+name: Build Kernel Redmi K40 (Based-AOSP Android 15) with KSU and SUSFS
 on:
   workflow_call:
   workflow_dispatch:
