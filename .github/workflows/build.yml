@@ -22,11 +22,6 @@ on:
         required: true
         type: boolean
         default: true
-      build_kernel_blackshark4_miui_a11:
-        description: "Build Kernel Black Shark 4 (MIUI 12 A11)?"
-        required: true
-        type: boolean
-        default: true
       build_kernel_mi10s_aosp_a15:
         description: "Build Kernel Xiaomi 10S (Based-AOSP Android 15)?"
         required: true
@@ -37,11 +32,6 @@ on:
         required: true
         type: boolean
         default: true
-      build_kernel_s20_oneui5_a13:
-        description: "Build Kernel Samsung S20 5G (OneUI 5.1) (Snapdragon Only)?"
-        required: true
-        type: boolean
-        default: true
       make_release:
         description: "Do you want to create a release?"
         required: true
@@ -49,10 +39,6 @@ on:
         default: true
 
 jobs:
-  build_kernel_op8_oos131_a13:
-    uses: ./.github/workflows/build_kernel_op8_oos13.1_a13.yml
-    secrets: inherit
-    if: ${{ inputs.build_kernel_op8_oos131_a13 }}
   build_kernel_k20p_aosp_a15:
     uses: ./.github/workflows/build_kernel_k20p_aosp_a15.yml
     secrets: inherit
@@ -61,10 +47,6 @@ jobs:
     uses: ./.github/workflows/build_kernel_mix2s_evox_a15.yml
     secrets: inherit
     if: ${{ inputs.build_kernel_mix2s_evox_a15 }}
-  build_kernel_blackshark4_miui_a11:
-    uses: ./.github/workflows/build_kernel_blackshark4_miui_a11.yml
-    secrets: inherit
-    if: ${{ inputs.build_kernel_blackshark4_miui_a11 }}
   build_kernel_mi10s_aosp_a15:
     uses: ./.github/workflows/build_kernel_mi10s_aosp_a15.yml
     secrets: inherit
@@ -73,11 +55,7 @@ jobs:
     uses: ./.github/workflows/build_kernel_op8_nameless15_a15.yml
     secrets: inherit
     if: ${{ inputs.build_kernel_op8_nameless15_a15 }}
-  build_kernel_s20_oneui5_a13:
-    uses: ./.github/workflows/build_kernel_s20_oneui5.1_a13.yml
-    secrets: inherit
-    if: ${{ inputs.build_kernel_s20_oneui5_a13 }}
-
+  
   trigger-release:
     runs-on: ubuntu-latest
     needs:
@@ -86,8 +64,6 @@ jobs:
       - build_kernel_mix2s_evox_a15
       - build_kernel_blackshark4_miui_a11
       - build_kernel_mi10s_aosp_a15
-      - build_kernel_op8_nameless15_a15
-      - build_kernel_s20_oneui5_a13
     if: ${{ inputs.make_release }}
     env:
       REPO_OWNER: JackA1ltman
