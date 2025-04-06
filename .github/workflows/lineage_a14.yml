@@ -177,17 +177,6 @@ jobs:
           SUSFS_BRANCH=kernel-${{ env.KERNEL_VERSION }}
           KERNEL_PATCHES=https://github.com/JackA1ltman/NonGKI_Kernel_Patches.git
 
-          # Set MKBOOTIMG and KSU
-          cd $GITHUB_WORKSPACE
-          git clone https://android.googlesource.com/platform/system/tools/mkbootimg mkboottools -b master-kernel-build-2022 --depth=1
-          wget ${{ env.BOOT_SOURCE }} -O $GITHUB_WORKSPACE/boot_source_${{ env.DEVICE_NAME }}.img
-
-          cd $GITHUB_WORKSPACE/device_kernel
-          curl -sSL ${{ env.KERNELSU_SOURCE }} | bash -s ${{ env.KERNELSU_BRANCH }}
-          KSU_VERSION=$(cd ${{ env.KERNELSU_NAME }} && expr $(/usr/bin/git rev-list --count HEAD) + 10200)
-          echo "UPLOADNAME=-${{ env.KERNELSU_NAME }}_$KSU_VERSION" >> $GITHUB_ENV
-          echo "PACK_METHOD=MKBOOTIMG" >> $GITHUB_ENV
-
           # Set SUSFS
           git clone $SUSFS_SOURCE -b $SUSFS_BRANCH susfs4ksu --depth=1
           git clone https://github.com/JackA1ltman/NonGKI_Kernel_Patches.git -b mi_kernel NonGKI_Kernel_Patches --depth=1
