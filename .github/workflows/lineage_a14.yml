@@ -199,23 +199,6 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE/device_kernel
           echo "CONFIG_KSU=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
-          if [[ "${{ env.SUSFS_ENABLE }}" == "true" ]]; then
-            echo "CONFIG_KSU_SUSFS=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
-            echo "CONFIG_KSU_SUSFS_HAS_MAGIC_MOUNT=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
-            echo "CONFIG_KSU_SUSFS_SUS_PATH=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
-            echo "CONFIG_KSU_SUSFS_SUS_MOUNT=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
-            echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
-            echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
-            echo "CONFIG_KSU_SUSFS_SUS_KSTAT=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
-            echo "# CONFIG_KSU_SUSFS_SUS_OVERLAYFS is not set" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
-            echo "CONFIG_KSU_SUSFS_TRY_UMOUNT=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
-            echo "CONFIG_KSU_SUSFS_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
-            echo "CONFIG_KSU_SUSFS_SPOOF_UNAME=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
-            echo "CONFIG_KSU_SUSFS_ENABLE_LOG=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
-            echo "CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
-            echo "CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
-            echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
-          fi
 
       - name: Set Pack Method and KernelSU and SUSFS
         run: |
@@ -224,56 +207,8 @@ jobs:
           SUSFS_BRANCH=kernel-${{ env.KERNEL_VERSION }}
           PACK_METHOD=Anykernel3 # Anykernel3 need SOURCE and BRANCH, MKBOOTIMG needn't it.
           KERNELSU_METHOD=shell # shell and manual
-
-          # Set $PACK_METHOD and KernelSU
-          if [[ $PACK_METHOD == "Anykernel3" ]]; then
-            cd $GITHUB_WORKSPACE/device_kernel
-            if [[ -d "Anykernel3" ]]; then
-              echo "Found Anykernel3 in Kernel!"
-            else
-              git clone ${{ env.AK3_SOURCE }} -b ${{ env.AK3_BRANCH }} Anykernel3 --depth=1
-            fi
-          elif [[ $PACK_METHOD == "MKBOOTIMG" ]]; then
-            cd $GITHUB_WORKSPACE
-            git clone https://android.googlesource.com/platform/system/tools/mkbootimg $GITHUB_WORKSPACE/mkboottools -b main-kernel-build-2024 --depth=1
-            wget ${{ env.BOOT_SOURCE }} -O $GITHUB_WORKSPACE/boot_source_${{ env.DEVICE_NAME }}.img
-            cd device_kernel
-          else
-            exit
-          fi
-          echo "PACK_METHOD=$PACK_METHOD" >> $GITHUB_ENV
-
-          if [[ $KERNELSU_METHOD == "shell" ]]; then
-            curl -sSL ${{ env.KERNELSU_SOURCE }} | bash -s ${{ env.KERNELSU_BRANCH }}
-          elif [[ $KERNELSU_METHOD == "manual" ]]; then
-            rm -rf KernelSU && rm -rf KernelSU-Next
-            git clone ${{ env.KERNELSU_SOURCE }} -b ${{ env.KERNELSU_BRANCH }} ${{ env.KERNELSU_NAME }}
-            ln -sf "$(realpath --relative-to="$KERNEL_LOCATION/drivers" "$KERNEL_LOCATION/KernelSU-Next/kernel")" "kernelsu"
-            grep -q "kernelsu" "$KERNEL_LOCATION/drivers/Makefile" || printf "\nobj-\$(CONFIG_KSU) += kernelsu/\n" >> $KERNEL_LOCATION/drivers/Makefile
-            grep -q "source \"drivers/kernelsu/Kconfig\"" "$KERNEL_LOCATION/drivers/Kconfig" || sed -i "/endmenu/i\source \"drivers/kernelsu/Kconfig\"" "$KERNEL_LOCATION/drivers/Kconfig"
-            echo "KernelSU Settings done."
-          else
-            exit
-          fi
-          echo "KERNELSU_METHOD=$KERNELSU_METHOD" >> $GITHUB_ENV
-          KSU_VERSION=$(cd ${{ env.KERNELSU_NAME }} && expr $(/usr/bin/git rev-list --count HEAD) + 10200)
-          echo "UPLOADNAME=-${{ env.KERNELSU_NAME }}_$KSU_VERSION" >> $GITHUB_ENV
-
-          # Set SUSFS
-          if [[ "${{ env.SUSFS_ENABLE }}" == true ]]; then
-            if [[ "${{ env.SUSFS_FIXED }}" == true ]]; then
-              PATCHES_SOURCE=[your_name]/[your_patch]
-              PATCHES_BRANCH=[your_branch]
-              git clone https://github.com/$PATCHES_SOURCE.git -b $PATCHES_BRANCH NonGKI_Kernel_Patches --depth=1 # It's not necessary.
-              # git clone https://${{ github.actor }}:${{ secrets.SPECIAL_COMMAND }}@github.com/$PATCHES_SOURCE -b $PATCHES_BRANCH NonGKI_Kernel_Patches # if u need.
-            fi
-            git clone $SUSFS_SOURCE -b $SUSFS_BRANCH susfs4ksu --depth=1
-            cp susfs4ksu/kernel_patches/fs/* fs/
-            cp susfs4ksu/kernel_patches/include/linux/* include/linux/
-          else
-            echo "Disabled SUSFS !"
-          fi
-
+          
+          
       - name: Patch Kernel for no-kprobe
         run: |
           cd $GITHUB_WORKSPACE
