@@ -454,23 +454,6 @@ jobs:
             false
           fi
 
-      - name: ReKernel Supported
-        run: |
-          cd $GITHUB_WORKSPACE/device_kernel/
-          cp NonGKI_Kernel_Patches/kona_oos/4_19_rekernel.patch ./
-          cp NonGKI_Kernel_Patches/kona_oos/rekernel_fixed.patch ./
-
-          patch -p1 < 4_19_rekernel.patch || true
-          patch -p1 < rekernel_fixed.patch || true
-
-      - name: Fixed Kernel Patch
-        if: env.SUSFS_ENABLE == 'true' && env.SUSFS_FIXED == 'true'
-        run: |
-          cd $GITHUB_WORKSPACE/device_kernel/
-          cp NonGKI_Kernel_Patches/[patch_folder]/[patch_file].patch ./
-
-          patch -p1 < [patch_file].patch || true
-
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
