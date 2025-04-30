@@ -1,4 +1,4 @@
-name: Build Kernel Redmi K40 (Based-AOSP Android 15) with KSU and SUSFS
+name: Build Kernel Redmi K40 with KSU
 on:
   workflow_call:
   workflow_dispatch:
