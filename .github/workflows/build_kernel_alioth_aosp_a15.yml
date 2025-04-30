@@ -3,7 +3,7 @@ on:
   workflow_call:
   workflow_dispatch:
 env:
-  HOOK_METHOD: "normal" # manual hook method,can choice vfs and normal.
+  HOOK_METHOD: "vfs" # manual hook method,can choice vfs and normal.
 
 jobs:
   build:
