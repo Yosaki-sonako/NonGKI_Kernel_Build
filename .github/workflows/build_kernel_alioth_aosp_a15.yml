@@ -1,4 +1,4 @@
-name: Build Kernel Redmi K40 with KSU
+name: Build Kernel Redmi K40 -sonako with KSU
 on:
   workflow_call:
   workflow_dispatch:
