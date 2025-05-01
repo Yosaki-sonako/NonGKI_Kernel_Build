@@ -6,7 +6,7 @@ env:
   PYTHON_VERSION: "3" # Only 2(Ubuntu 22.04) or 3(Any OS Versions).
   PACK_METHOD: "Anykernel3" # Anykernel3 need SOURCE and BRANCH, MKBOOTIMG needn't it.
   KERNELSU_METHOD: "shell" # shell, manual and only.
-  PATCHES_SOURCE: "ShirkNeko/SukiSU_KernelPatch_patch" # [your_name]/[your_patch] -> gooder123/NonGKI_Patcher
+  PATCHES_SOURCE: "ShirkNeko/SukiSU_patch" # [your_name]/[your_patch] -> gooder123/NonGKI_Patcher
   PATCHES_BRANCH: "main" # [your_branch] -> main
   HOOK_METHOD: "vfs" # manual hook method,can choice vfs and normal.
   PROFILE_NAME: "alioth_los_a15.env" # your profile name.
@@ -268,9 +268,6 @@ jobs:
           fi
           echo "PACK_METHOD=${{ env.PACK_METHOD }}" >> $GITHUB_ENV
 
-          wget https://github.com/ShirkNeko/SukiSU_patch/blob/main/4.19/ksu_hooks_sukisu_4.19.patch
-          rm -rf KernelSU-Next
-          patch -p1 < ksu_hooks_sukisu_4.19.patch
           if [[ ${{ env.KERNELSU_METHOD }} == "shell" ]]; then
             curl -sSL ${{ env.KERNELSU_SOURCE }} | bash -s ${{ env.KERNELSU_BRANCH }}
           elif [[ ${{ env.KERNELSU_METHOD }} == "manual" ]]; then
