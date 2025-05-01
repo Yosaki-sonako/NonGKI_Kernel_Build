@@ -270,7 +270,7 @@ jobs:
 
           wget https://github.com/ShirkNeko/SukiSU_patch/blob/main/4.19/ksu_hooks_sukisu_4.19.patch
           rm -rf KernelSU-Next
-          patch -p1 < realking_op8_rm_next_and_backport.patch
+          patch -p1 < ksu_hooks_sukisu_4.19.patch
           if [[ ${{ env.KERNELSU_METHOD }} == "shell" ]]; then
             curl -sSL ${{ env.KERNELSU_SOURCE }} | bash -s ${{ env.KERNELSU_BRANCH }}
           elif [[ ${{ env.KERNELSU_METHOD }} == "manual" ]]; then
