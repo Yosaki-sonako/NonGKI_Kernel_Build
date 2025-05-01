@@ -268,7 +268,7 @@ jobs:
           fi
           echo "PACK_METHOD=${{ env.PACK_METHOD }}" >> $GITHUB_ENV
 
-          wget https://raw.githubusercontent.com/JackA1ltman/NonGKI_Kernel_Patches/refs/heads/op_kernel/kona_oos/realking_op8_rm_next_and_backport.patch
+          wget https://github.com/ShirkNeko/SukiSU_patch/blob/main/4.19/ksu_hooks_sukisu_4.19.patch
           rm -rf KernelSU-Next
           patch -p1 < realking_op8_rm_next_and_backport.patch
           if [[ ${{ env.KERNELSU_METHOD }} == "shell" ]]; then
