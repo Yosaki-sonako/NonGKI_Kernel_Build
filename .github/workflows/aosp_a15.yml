@@ -322,12 +322,6 @@ jobs:
             echo "Disabled SUSFS !"
           fi
 
-          # Remove Patch
-          git clone https://github.com/${{ env.PATCHES_SOURCE }}.git -b ${{ env.PATCHES_BRANCH }} NonGKI_Kernel_Patches --depth=1 # It's not necessary.
-          cp NonGKI_Kernel_Patches/kona_oos/realking_op8_rm_all_normal_patch.patch ./
-
-          patch -p1 < realking_op8_rm_all_normal_patch.patch || true
-
       - name: Patch Kernel for no-kprobe
         run: |
           cd $GITHUB_WORKSPACE
