@@ -1,4 +1,4 @@
-name: Build Kernel fakedreamer with KSU
+name: Build SukiSU_Ultra Kernel with KSU
 on:
   workflow_call:
   workflow_dispatch:
@@ -6,10 +6,10 @@ env:
   PYTHON_VERSION: "3" # Only 2(Ubuntu 22.04) or 3(Any OS Versions).
   PACK_METHOD: "Anykernel3" # Anykernel3 need SOURCE and BRANCH, MKBOOTIMG needn't it.
   KERNELSU_METHOD: "shell" # shell, manual and only.
-  # PATCHES_SOURCE: "JackA1ltman/NonGKI_Kernel_Patches" # [your_name]/[your_patch] -> gooder123/NonGKI_Patcher
-  # PATCHES_BRANCH: "op_kernel" # [your_branch] -> main
+  PATCHES_SOURCE: "ShirkNeko/SukiSU_KernelPatch_patch" # [your_name]/[your_patch] -> gooder123/NonGKI_Patcher
+  PATCHES_BRANCH: "main" # [your_branch] -> main
   HOOK_METHOD: "vfs" # manual hook method,can choice vfs and normal.
-  PROFILE_NAME: "aosp_a15.env" # your profile name.
+  PROFILE_NAME: "alioth_los_a15.env" # your profile name.
   KERNELSU_SUS_PATCH: "false" # if u need manual susfs patch to kernelsu.
   BUILD_DEBUGGER: "false" # Output build errors.
 
@@ -249,50 +249,74 @@ jobs:
           # Variable
           SUSFS_SOURCE=https://gitlab.com/simonpunk/susfs4ksu.git
           SUSFS_BRANCH=kernel-${{ env.KERNEL_VERSION }}
-          PACK_METHOD=Anykernel3 # Anykernel3 need SOURCE and BRANCH, MKBOOTIMG needn't it.
-          KERNELSU_METHOD=shell # shell and manual
 
-          # Set $PACK_METHOD and KernelSU
-          if [[ $PACK_METHOD == "Anykernel3" ]]; then
+          # Set ${{ env.PACK_METHOD }} and KernelSU
+          if [[ ${{ env.PACK_METHOD }} == "Anykernel3" ]]; then
             cd $GITHUB_WORKSPACE/device_kernel
-            if [[ -d "Anykernel3" ]]; then
+            if [[ -d "anykernel" ]]; then
               echo "Found Anykernel3 in Kernel!"
             else
               git clone ${{ env.AK3_SOURCE }} -b ${{ env.AK3_BRANCH }} Anykernel3 --depth=1
             fi
-          elif [[ $PACK_METHOD == "MKBOOTIMG" ]]; then
+          elif [[ ${{ env.PACK_METHOD }} == "MKBOOTIMG" ]]; then
             cd $GITHUB_WORKSPACE
             git clone https://android.googlesource.com/platform/system/tools/mkbootimg $GITHUB_WORKSPACE/mkboottools -b main-kernel-build-2024 --depth=1
             wget ${{ env.BOOT_SOURCE }} -O $GITHUB_WORKSPACE/boot_source_${{ env.DEVICE_NAME }}.img
             cd device_kernel
           else
-            exit
+            false
           fi
-          echo "PACK_METHOD=$PACK_METHOD" >> $GITHUB_ENV
+          echo "PACK_METHOD=${{ env.PACK_METHOD }}" >> $GITHUB_ENV
 
-          if [[ $KERNELSU_METHOD == "shell" ]]; then
+          wget https://raw.githubusercontent.com/JackA1ltman/NonGKI_Kernel_Patches/refs/heads/op_kernel/kona_oos/realking_op8_rm_next_and_backport.patch
+          rm -rf KernelSU-Next
+          patch -p1 < realking_op8_rm_next_and_backport.patch
+          if [[ ${{ env.KERNELSU_METHOD }} == "shell" ]]; then
             curl -sSL ${{ env.KERNELSU_SOURCE }} | bash -s ${{ env.KERNELSU_BRANCH }}
-          elif [[ $KERNELSU_METHOD == "manual" ]]; then
+          elif [[ ${{ env.KERNELSU_METHOD }} == "manual" ]]; then
             rm -rf KernelSU && rm -rf KernelSU-Next
             git clone ${{ env.KERNELSU_SOURCE }} -b ${{ env.KERNELSU_BRANCH }} ${{ env.KERNELSU_NAME }}
-            ln -sf "$(realpath --relative-to="$KERNEL_LOCATION/drivers" "$KERNEL_LOCATION/KernelSU-Next/kernel")" "kernelsu"
+            ln -sf "$(realpath --relative-to="$KERNEL_LOCATION/drivers" "$KERNEL_LOCATION/${{ env.KERNELSU_NAME }}/kernel")" "kernelsu"
             grep -q "kernelsu" "$KERNEL_LOCATION/drivers/Makefile" || printf "\nobj-\$(CONFIG_KSU) += kernelsu/\n" >> $KERNEL_LOCATION/drivers/Makefile
             grep -q "source \"drivers/kernelsu/Kconfig\"" "$KERNEL_LOCATION/drivers/Kconfig" || sed -i "/endmenu/i\source \"drivers/kernelsu/Kconfig\"" "$KERNEL_LOCATION/drivers/Kconfig"
             echo "KernelSU Settings done."
+          elif [[ ${{ env.KERNELSU_METHOD }} == "only" ]];then
+            rm -rf KernelSU && rm -rf KernelSU-Next
+            git clone ${{ env.KERNELSU_SOURCE }} -b ${{ env.KERNELSU_BRANCH }} ${{ env.KERNELSU_NAME }}
+            echo "KernelSU git done."
           else
-            exit
+            false
           fi
-          echo "KERNELSU_METHOD=$KERNELSU_METHOD" >> $GITHUB_ENV
+          echo "KERNELSU_METHOD=${{ env.KERNELSU_METHOD }}" >> $GITHUB_ENV
           KSU_VERSION=$(cd ${{ env.KERNELSU_NAME }} && expr $(/usr/bin/git rev-list --count HEAD) + 10200)
           echo "UPLOADNAME=-${{ env.KERNELSU_NAME }}_$KSU_VERSION" >> $GITHUB_ENV
+
+          ## KPM Checker
+          if [[ -d "${{ env.KERNELSU_NAME }}/kernel/kpm" ]]; then
+            if [ -f "include/linux/set_memory.h" ] && [ "${{ env.KPM_ENABLE }}" == "true" ]; then
+                echo "CONFIG_KPM=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
+                wget "${{ env.KPM_PATCH_SOURCE }}" -o patch
+                chmod 777 patch
+                echo "Set KPM successfully !"
+            elif [ "$KPM_ENABLE" == "true" ]; then
+                echo "Your kernel doesn't support KPM !"
+            else
+                echo "Doesn't enable KPM !"
+            fi
+          fi
 
           # Set SUSFS
           if [[ "${{ env.SUSFS_ENABLE }}" == true ]]; then
             if [[ "${{ env.SUSFS_FIXED }}" == true ]]; then
-              PATCHES_SOURCE=[your_name]/[your_patch]
-              PATCHES_BRANCH=[your_branch]
-              git clone https://github.com/$PATCHES_SOURCE.git -b $PATCHES_BRANCH NonGKI_Kernel_Patches --depth=1 # It's not necessary.
-              # git clone https://${{ github.actor }}:${{ secrets.SPECIAL_COMMAND }}@github.com/$PATCHES_SOURCE -b $PATCHES_BRANCH NonGKI_Kernel_Patches # if u need.
+              if [ -z "${{ env.PATCHES_SOURCE }}" ] || [ -z "${{ env.PATCHES_BRANCH }}" ]; then
+                echo "Please input vaild source and branch!"
+                false
+              elif [[ ${{ env.PATCHES_SOURCE }} == *".git" ]]; then
+                echo "Please do not set a full URL in PATCH_SOURCE!"
+                false
+              else
+                git clone https://github.com/${{ env.PATCHES_SOURCE }}.git -b ${{ env.PATCHES_BRANCH }} NonGKI_Kernel_Patches --depth=1 # It's not necessary.
+              fi
             fi
             git clone $SUSFS_SOURCE -b $SUSFS_BRANCH susfs4ksu --depth=1
             cp susfs4ksu/kernel_patches/fs/* fs/
@@ -300,6 +324,12 @@ jobs:
           else
             echo "Disabled SUSFS !"
           fi
+
+          # Remove Patch
+          git clone https://github.com/${{ env.PATCHES_SOURCE }}.git -b ${{ env.PATCHES_BRANCH }} NonGKI_Kernel_Patches --depth=1 # It's not necessary.
+          cp NonGKI_Kernel_Patches/kona_oos/realking_op8_rm_all_normal_patch.patch ./
+
+          patch -p1 < realking_op8_rm_all_normal_patch.patch || true
 
       - name: Patch Kernel for no-kprobe
         run: |
@@ -438,21 +468,13 @@ jobs:
             patch -p1 < 10_enable_susfs_for_ksu.patch || true
           fi
 
-      - name: Patch Debugger
-        if: env.BUILD_DEBUGGER == 'true'
+      - name: Fixed Kernel Patch
+        if: env.SUSFS_ENABLE == 'true' && env.SUSFS_FIXED == 'true'
         run: |
           cd $GITHUB_WORKSPACE/device_kernel/
-          mapfile -t REJ_FILES < <(find . -type f -name "*.rej")
-          if [ ${#REJ_FILES[@]} -eq 0 ]; then
-            echo "Your kernel have no any rej files."
-          else
-            for CAT_REJ in "${REJ_FILES[@]}"; do
-                echo "Found .rej file: $CAT_REJ"
-                cat $CAT_REJ
-                echo "==========EOF=========="
-            done
-            false
-          fi
+          cp NonGKI_Kernel_Patches/[patch_folder]/[patch_file].patch ./
+
+          patch -p1 < [patch_file].patch || true
 
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1.2
@@ -471,7 +493,7 @@ jobs:
             make O=out ARCH=arm64 $${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.DEFCONFIG_NAME }}
             make -j$(nproc --all) O=out ARCH=arm64 ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }}
           else
-            make CC="ccache clang" O=out ARCH=arm64 ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.DEFCONFIG_NAME }}
+            make CC="ccache clang" O=out ARCH=arm64 ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.DEFCONFIG_NAME }}  vendor/xiaomi/sm8250-common.config
             make -j$(nproc --all) CC="ccache clang" O=out ARCH=arm64 ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }}
           fi
 
