@@ -1,4 +1,4 @@
-name: Build Kernel OnePlus 8 (Realking)(OOS13.1) with KSU and SUSFS
+name: Build Kernel sukisu-ultra with KSU and SUSFS
 on:
   workflow_call:
   workflow_dispatch:
