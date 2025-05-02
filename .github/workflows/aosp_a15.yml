@@ -1,16 +1,18 @@
-name: Build SukiSU_Ultra Kernel with KSU
+name: Build Kernel OnePlus 8 (Realking)(OOS13.1) with KSU and SUSFS
 on:
   workflow_call:
   workflow_dispatch:
 env:
-  PYTHON_VERSION: "2" # Only 2(Ubuntu 22.04) or 3(Any OS Versions).
+  PYTHON_VERSION: "3" # Only 2(Ubuntu 22.04) or 3(Any OS Versions).
   PACK_METHOD: "Anykernel3" # Anykernel3 need SOURCE and BRANCH, MKBOOTIMG needn't it.
   KERNELSU_METHOD: "shell" # shell, manual and only.
   PATCHES_SOURCE: "ShirkNeko/SukiSU_patch" # [your_name]/[your_patch] -> gooder123/NonGKI_Patcher
   PATCHES_BRANCH: "main" # [your_branch] -> main
-  HOOK_METHOD: "vfs" # manual hook method,can choice vfs and normal.
+  HOOK_METHOD: "normal" # manual hook method,can choice vfs and normal.
   PROFILE_NAME: "alioth_los_a15.env" # your profile name.
   KERNELSU_SUS_PATCH: "false" # if u need manual susfs patch to kernelsu.
+  KPM_ENABLE: "true" # Only use it for SukiSU-Ultra.
+  KPM_PATCH_SOURCE: "https://raw.githubusercontent.com/ShirkNeko/SukiSU_patch/refs/heads/main/kpm/patch_linux" # patch exec file source -> raw.githubusercontent.com/Test/Test/patch .
   BUILD_DEBUGGER: "false" # Output build errors.
 
 jobs:
@@ -312,7 +314,7 @@ jobs:
                 echo "Please do not set a full URL in PATCH_SOURCE!"
                 false
               else
-                git clone https://github.com/${{ env.PATCHES_SOURCE }}.git -b ${{ env.PATCHES_BRANCH }} NonGKI_Kernel_Patches --depth=1 # It's not necessary.
+                git clone https://github.com/${{ env.PATCHES_SOURCE }}.git -b ${{ env.PATCHES_BRANCH }} SukiSU_patch --depth=1 # It's not necessary.
               fi
             fi
             git clone $SUSFS_SOURCE -b $SUSFS_BRANCH susfs4ksu --depth=1
@@ -459,11 +461,27 @@ jobs:
             patch -p1 < 10_enable_susfs_for_ksu.patch || true
           fi
 
+      - name: Patch Debugger
+        if: env.BUILD_DEBUGGER == 'true'
+        run: |
+          cd $GITHUB_WORKSPACE/device_kernel/
+          mapfile -t REJ_FILES < <(find . -type f -name "*.rej")
+          if [ ${#REJ_FILES[@]} -eq 0 ]; then
+            echo "Your kernel have no any rej files."
+          else
+            for CAT_REJ in "${REJ_FILES[@]}"; do
+                echo "Found .rej file: $CAT_REJ"
+                cat $CAT_REJ
+                echo "==========EOF=========="
+            done
+            false
+          fi
+
       - name: Fixed Kernel Patch
         if: env.SUSFS_ENABLE == 'true' && env.SUSFS_FIXED == 'true'
         run: |
           cd $GITHUB_WORKSPACE/device_kernel/
-          cp NonGKI_Kernel_Patches/[patch_folder]/[patch_file].patch ./
+          cp SukiSU_patch/[patch_folder]/[patch_file].patch ./
 
           patch -p1 < [patch_file].patch || true
 
@@ -484,7 +502,7 @@ jobs:
             make O=out ARCH=arm64 $${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.DEFCONFIG_NAME }}
             make -j$(nproc --all) O=out ARCH=arm64 ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }}
           else
-            make CC="ccache clang" O=out ARCH=arm64 ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.DEFCONFIG_NAME }}  vendor/xiaomi/sm8250-common.config
+            make O=out ARCH=arm64 $${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.DEFCONFIG_NAME }} vendor/xiaomi/sm8250-common.config
             make -j$(nproc --all) CC="ccache clang" O=out ARCH=arm64 ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }}
           fi
 
@@ -542,6 +560,72 @@ jobs:
 
           echo "PACK_NAME=${{ env.DEVICE_CODENAME }}-${{ env.ROM_TEXT }}-$TIME-${{ env.PACK_METHOD }}${{ env.LXC_STATUS }}.zip" >> $GITHUB_ENV
 
+      - name: KPM Patcher (Experiment)
+        if: env.KPM_ENABLE == 'true'
+        run: |
+          cd $GITHUB_WORKSPACE/device_kernel/
+          IMAGE_DIR="$GITHUB_WORKSPACE/device_kernel/out/arch/arm64/boot"
+
+          if [[ -f "$IMAGE_DIR/Image.gz-dtb" ]]; then
+              MODE="gz-dtb"
+          elif [[ -f "$IMAGE_DIR/Image.gz" ]]; then
+              MODE="gz"
+          elif [[ -f "$IMAGE_DIR/Image" ]]; then
+              MODE="plain"
+          else
+              echo "No valid Image file found."
+              exit 1
+          fi
+
+          case "$MODE" in
+            gz-dtb)
+              if [ -f "include/linux/set_memory.h" ]; then
+                  if [ -d "out/arch/arm64/boot/dts" ]; then
+                      rm -f "$IMAGE_DIR/Image.gz-dtb" "$IMAGE_DIR/Image.gz"
+                      cp patch "$IMAGE_DIR/"
+                      cd "$IMAGE_DIR/"
+                      ./patch
+                      rm -f Image
+                      mv oImage Image
+                      gzip -c Image > Image.gz
+                      cat Image.gz dts/${{ env.GENERATE_CHIP }}/*.dtb > Image.gz-dtb
+                      echo "Hook Image successfully !"
+                  elif [ -d "out/arch/arm64/boot/vendor/dts" ]; then
+                      rm -f "$IMAGE_DIR/Image.gz-dtb" "$IMAGE_DIR/Image.gz"
+                      cp patch "$IMAGE_DIR/"
+                      cd "$IMAGE_DIR/"
+                      ./patch
+                      rm -f Image
+                      mv oImage Image
+                      gzip -c Image > Image.gz
+                      cat Image.gz vendor/dts/${{ env.GENERATE_CHIP }}/*.dtb > Image.gz-dtb
+                      echo "Hook Image successfully !"
+                  else
+                      echo "Not found dts folder, abort."
+                  fi
+              else
+                  echo "Not supported for your kernel !"
+              fi
+              ;;
+            gz)
+              rm -f "$IMAGE_DIR/Image.gz"
+              cp patch "$IMAGE_DIR/"
+              cd "$IMAGE_DIR/"
+              ./patch
+              rm -f Image
+              mv oImage Image
+              gzip -c Image > Image.gz
+              echo "Hook Image successfully !"
+              ;;
+            plain)
+              cp patch "$IMAGE_DIR/"
+              cd "$IMAGE_DIR/"
+              ./patch
+              mv oImage Image
+              echo "Hook Image successfully !"
+              ;;
+          esac
+
       - name: Make Latest Boot Image
         if: env.PACK_METHOD == 'MKBOOTIMG'
         run: |
@@ -580,9 +664,10 @@ jobs:
           path: |
             device_kernel/${{ env.PACK_NAME }}
 
-      - name: Upload Build Artifacts
+      - name: Upload Build Artifacts For Anykernel3
+        if: env.PACK_METHOD == 'MKBOOTIMG'
         uses: actions/upload-artifact@v4
         with:
           name: Kernel-${{ env.PACK_NAME }}
           path: |
-            device_kernel/${{ env.PACK_NAME }}
+            ${{ env.PACK_NAME }}
