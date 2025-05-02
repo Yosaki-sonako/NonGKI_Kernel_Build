@@ -580,10 +580,9 @@ jobs:
           path: |
             device_kernel/${{ env.PACK_NAME }}
 
-      - name: Upload Build Artifacts For Anykernel3
-        if: env.PACK_METHOD == 'MKBOOTIMG'
+      - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: Kernel-${{ env.PACK_NAME }}
           path: |
-            ${{ env.PACK_NAME }}
+            device_kernel/${{ env.PACK_NAME }}
