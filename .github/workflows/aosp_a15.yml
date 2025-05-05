@@ -1,4 +1,4 @@
-name: Build Kernel sukisu-ultra with KSU and SUSFS
+name: Build Kernel alioth from miui with KSU
 on:
   workflow_call:
   workflow_dispatch:
