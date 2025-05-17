@@ -1,4 +1,4 @@
-diff --git a/arch/arm64/configs/vendor/apollo_defconfig b/arch/arm64/configs/vendor/alioth_defconfig
+diff --git a/arch/arm64/configs/vendor/alioth_defconfig b/arch/arm64/configs/vendor/alioth_defconfig
 index ad15c232f..ba3437036 100644
 --- a/arch/arm64/configs/vendor/alioth_defconfig
 +++ b/arch/arm64/configs/vendor/alioth_defconfig
@@ -13,7 +13,7 @@ index ad15c232f..ba3437036 100644
 +# CONFIG_CC_WERROR=n
 +CONFIG_KPROBES=n
 +CONFIG_TMPFS_XATTR=y
-diff --git a/arch/arm64/configs/vendor/umi_defconfig b/arch/arm64/configs/vendor/apollo_defconfig
+diff --git a/arch/arm64/configs/vendor/apollo_defconfig b/arch/arm64/configs/vendor/apollo_defconfig
 index 3fe623b6d..67bc5b45a 100644
 --- a/arch/arm64/configs/vendor/apollo_defconfig
 +++ b/arch/arm64/configs/vendor/apollo_defconfig
