@@ -25,7 +25,7 @@ jobs:
       CI: "false"
     steps:
 
-      - name: 1.拉取编译链
+      - name: 1.Set clang
         run: |
           mkdir -p $GITHUB_WORKSPACE/kernel_workspace
           cd $GITHUB_WORKSPACE/kernel_workspace
@@ -33,7 +33,7 @@ jobs:
           mkdir -p clang
           tar -xzf Clang-19.0.0git-20240125.tar.gz -C clang
 
-      - name: 2.repo source and paches
+      - name: 2.repo source and patches
         run: |
           cd $GITHUB_WORKSPACE/kernel_workspace
           git clone https://github.com/sonako0122/kernel_sm8250 --depth=1 android_kernel
@@ -45,7 +45,7 @@ jobs:
           cd $GITHUB_WORKSPACE/kernel_workspace/android_kernel
           curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s main
 
-      - name: 4.setup rksu
+      - name: 4.Setup rksu
         run: |
           ls
           echo "进入源码目录"
@@ -54,7 +54,7 @@ jobs:
           patch -p1 < new_defconfig.patch
           patch -p1 < non-kprobes.patch
         
-      - name: 5.building kernel
+      - name: 5.Building kernel
         run: |
           export PATH=$GITHUB_WORKSPACE/kernel_workspace/clang/bin:$PATH
           echo "Updated PATH: $PATH"
@@ -84,7 +84,7 @@ jobs:
           make -j$(nproc --all) CC=clang O=out ARCH=arm64 CLANG_TRIPLE=aarch64-linux-gnu- LLVM=1 LLVM_IAS=1 CROSS_COMPILE=aarch64-buildroot-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-androideabi- $DEFCONFIG
           make -j8 CC=clang O=out ARCH=arm64 CLANG_TRIPLE=aarch64-linux-gnu- LLVM=1 LLVM_IAS=1 CROSS_COMPILE=aarch64-linux-android- CROSS_COMPILE_ARM32=arm-linux-androideabi-    
       
-      - name: 6. cp boot file
+      - name: 6.Cp bootfile
         run: |
             cd $GITHUB_WORKSPACE/kernel_workspace/android_kernel/out/arch/arm64/boot
             ls
@@ -93,7 +93,7 @@ jobs:
             mkdir $GITHUB_WORKSPACE/kernel_workspace/Anykernel3/kernels/miui/
             cp Image $GITHUB_WORKSPACE/kernel_workspace/Anykernel3/kernels/miui/
 
-      - name: 7.upload
+      - name: 7.Upload
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.phone }}-KernelSU-Next-${{ inputs.susfs }}-AnyKernel3
