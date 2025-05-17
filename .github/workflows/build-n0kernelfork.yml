@@ -33,19 +33,19 @@ jobs:
           mkdir -p clang
           tar -xzf Clang-19.0.0git-20240125.tar.gz -C clang
 
-      - name: 2. repo source and paches
+      - name: 2.repo source and paches
         run: |
           cd $GITHUB_WORKSPACE/kernel_workspace
           git clone https://github.com/sonako0122/kernel_sm8250 --depth=1 android_kernel
           git clone https://github.com/osm0sis/AnyKernel3.git AnyKernel3
           git clone https://github.com/sonako0122/NonGKI_Kernel_Build.git patches
 
-      - name: 3. Add Rksu
+      - name: 3.Add Rksu
         run: |
           cd $GITHUB_WORKSPACE/kernel_workspace/android_kernel
           curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s main
 
-      - name: 4. setup rksu
+      - name: 4.setup rksu
         run: |
           ls
           echo "进入源码目录"
