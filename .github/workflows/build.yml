@@ -29,9 +29,9 @@ jobs:
         run: |
           mkdir -p $GITHUB_WORKSPACE/kernel_workspace
           cd $GITHUB_WORKSPACE/kernel_workspace
-          wget -q https://github.com/ZyCromerZ/Clang/releases/download/19.0.0git-20240125-release/Clang-19.0.0git-20240125.tar.gz
+          wget -q https://github.com/ZyCromerZ/Clang/releases/download/18.0.0git-20240124-release/Clang-18.0.0git-20240124.tar.gz
           mkdir -p clang
-          tar -xzf Clang-19.0.0git-20240125.tar.gz -C clang
+          tar -xzf Clang-18.0.0git-20240124.tar.gz -C clang
 
       - name: 2.repo source and patches
         run: |
