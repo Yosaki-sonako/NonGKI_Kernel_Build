@@ -2,6 +2,7 @@
 # Patches author: weishu <twsxtd@gmail.com>
 # Shell authon: xiaoleGun <1592501605@qq.com>
 #               bdqllW <bdqllT@gmail.com>
+#               JackA1ltman <cs2dtzq@163.com>
 # Tested kernel versions: 5.4, 4.19, 4.14, 4.9
 # 20240123
 
