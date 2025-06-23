@@ -74,18 +74,21 @@ jobs:
           # Move patch folder to tmp
           mv $GITHUB_WORKSPACE/Patches /tmp/
 
-      - name: Install necessary packages
-        run: |
-          cat /etc/os-release
-
-          pacman -Syyu --noconfirm
-          pacman -S git base-devel systemd patch ccache automake flex lzop bison gperf zip curl bzip2 squashfs-tools pngcrush schedtool make optipng maven pwgen minicom bc unzip 7zip zstd binutils gcc python3 wget which --noconfirm
-
       - name: Install System Dependencies
         run: |
           echo "Updating system and installing libxml2..."
           sudo pacman -Syu --noconfirm # 确保系统更新并自动确认
           sudo pacman -S --noconfirm libxml2 git base-devel systemd patch ccache automake flex lzop bison gperf zip curl bzip2 squashfs-tools pngcrush schedtool make optipng maven pwgen minicom bc unzip 7zip zstd binutils gcc python3 wget which
+          echo "Checking for clang and ld.lld in expected bin path..."
+          ls -l "${TOOLCHAIN_BIN_PATH}/clang" || echo "Warning: clang not directly found in expected path."
+          ls -l "${TOOLCHAIN_BIN_PATH}/ld.lld" || echo "Warning: ld.lld not directly found in expected path."
+
+          # ==== 核心！将 NDK 中包含 ld.lld 的 bin 目录添加到 PATH ====
+          echo "Clang (with ld.lld) to PATH..."
+          echo "${TOOLCHAIN_BIN_PATH}" >> $GITHUB_PATH
+          
+          echo "--- Verifying PATH modification ---"
+          echo "Current PATH: $PATH" # 检查 PATH 变量是否更新
           sudo ldconfig
           echo "Verifying libxml2.so.2 existence..."
           
