@@ -85,18 +85,10 @@ jobs:
         run: |
           echo "Updating system and installing libxml2..."
           sudo pacman -Syu --noconfirm # 确保系统更新并自动确认
-          sudo pacman -S --noconfirm libxml2 # 明确安装 libxml2
-          
-          echo "Running ldconfig to update shared library cache..."
-          sudo ldconfig # 运行 ldconfig 更新缓存
-
+          sudo pacman -S --noconfirm libxml2 git base-devel systemd patch ccache automake flex lzop bison gperf zip curl bzip2 squashfs-tools pngcrush schedtool make optipng maven pwgen minicom bc unzip 7zip zstd binutils gcc python3 wget which
+          sudo ldconfig
           echo "Verifying libxml2.so.2 existence..."
-          find /usr -name "libxml2.so.2" || { echo "ERROR: libxml2.so.2 not found after installation!"; exit 1; }
           
-          echo "Verifying ld.lld dependencies..."
-          ldd "$(which ld.lld)" || { echo "ERROR: Could not run ldd on ld.lld. Check PATH or ld.lld installation."; exit 1; }
-          ldd "$(which ld.lld)" | grep "libxml2.so.2" || { echo "WARNING: ld.lld does not list libxml2.so.2 as a dependency or it's not found by ldd."; }
-
       - name: Install GNU GCC
         if: env.GCC_GNU == 'true'
         run: |
