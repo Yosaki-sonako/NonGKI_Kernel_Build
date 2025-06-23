@@ -78,12 +78,12 @@ jobs:
         run: |
           echo "Updating system and installing libxml2..."
           cat /etc/os-release
-          sudo pacman -Syu --noconfirm # 确保系统更新并自动确认
-          sudo pacman -S --noconfirm libxml2 git base-devel systemd patch ccache automake flex lzop bison gperf zip curl bzip2 squashfs-tools pngcrush schedtool make optipng maven pwgen minicom bc unzip 7zip zstd binutils gcc python3 wget which
+          pacman -Syu --noconfirm # 确保系统更新并自动确认
+          pacman -S --noconfirm libxml2 git base-devel systemd patch ccache automake flex lzop bison gperf zip curl bzip2 squashfs-tools pngcrush schedtool make optipng maven pwgen minicom bc unzip 7zip zstd binutils gcc python3 wget which
           
           echo "--- Verifying PATH modification ---"
           echo "Current PATH: $PATH" # 检查 PATH 变量是否更新
-          sudo ldconfig
+          ldconfig
           echo "Verifying libxml2.so.2 existence..."
           
       - name: Install GNU GCC
