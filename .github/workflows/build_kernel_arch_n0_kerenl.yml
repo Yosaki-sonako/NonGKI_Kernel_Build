@@ -164,7 +164,26 @@ jobs:
           else
             echo "You needn't clang!"
           fi
-
+          
+      - name: Debug Environment Variables
+        run: |
+          echo "Current Working Directory: $(pwd)"
+          echo "PATH: $PATH"
+          echo "ARCH: $ARCH"
+          echo "CLANG_TRIPLE: $CLANG_TRIPLE"
+          echo "LD: $LD"
+          echo "AR: $AR"
+          # 检查 clang 是否在 PATH 中，以及它的路径
+          which clang
+          # 检查 clang 版本和支持的目标
+          clang --version
+          clang --print-targets
+          # 尝试直接调用 clang 编译一个简单的 arm64 文件
+          echo 'int main() {}' > test.c
+          clang -target aarch64-linux-gnu -c test.c -o test.o
+          if [ $? -ne 0 ]; then echo "Clang AArch64 test failed!"; exit 1; 
+          fi
+          
       - name: Get Kernel Source
         run: |
           cd $GITHUB_WORKSPACE
