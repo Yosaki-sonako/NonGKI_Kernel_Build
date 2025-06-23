@@ -1,4 +1,4 @@
-name: Build Kernel Redmi K40 sonako_fake with KSU
+name: Build Kernel Redmi K40 sonako_n0 with KSU
 on:
   workflow_call:
   workflow_dispatch:
