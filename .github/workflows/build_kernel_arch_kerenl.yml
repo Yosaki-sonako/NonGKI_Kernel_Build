@@ -85,6 +85,17 @@ jobs:
           echo "Current PATH: $PATH" # 检查 PATH 变量是否更新
           ldconfig
           echo "Verifying libxml2.so.2 existence..."
+          find /usr -name "libxml2.so.2" || { echo "ERROR: libxml2.so.2 not found after installation!"; exit 1; }
+          
+          echo "Verifying ld.lld path and dependencies..."
+          LD_LLD_PATH=$(which ld.lld)
+          if [ -z "$LD_LLD_PATH" ]; then
+            echo "ERROR: ld.lld not found in PATH. Please ensure NDK/Clang bin is correctly added to PATH."
+            exit 1
+          fi
+          echo "ld.lld found at: $LD_LLD_PATH"
+          
+          ldd "$LD_LLD_PATH" | grep "libxml2.so.2" || { echo "WARNING: ldd for ld.lld does not list libxml2.so.2 as found."; }
           
       - name: Install GNU GCC
         if: env.GCC_GNU == 'true'
