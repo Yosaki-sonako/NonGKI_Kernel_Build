@@ -409,37 +409,6 @@ jobs:
           sed -i '/KBUILD_DTBS\t:= dtbs/a \#DTBO\nKBUILD_DTBO_IMG := dtbo.img' ./arch/arm64/Makefile
           sed -i '/dtc-tmp = $(subst $(comma),_,$(dot-target)\.dts\.tmp)/a \#DTBO\n# mkdtimg\n#----------------------------------------------------------------------------\nquiet_cmd_mkdtimg = DTBOIMG $@\ncmd_mkdtimg = python3 $(srctree)\/scripts\/dtc\/mkdtboimg.py create $@ --page_size=4096 $(filter-out FORCE,$^)' ./scripts/Makefile.lib
 
-      - name: Setup LXC (Experiment)
-        if: env.LXC_ENABLE == 'true'
-        run: |
-          cd $GITHUB_WORKSPACE/device_kernel
-          rm -rf lxc
-          git clone https://github.com/tomxi1997/lxc-docker-support-for-android.git lxc
-          echo 'source "lxc/Kconfig"' >> "Kconfig"
-
-          echo "CONFIG_DOCKER=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
-
-          sed -i '/CONFIG_ANDROID_PARANOID_NETWORK/d' ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
-          echo "# CONFIG_ANDROID_PARANOID_NETWORK is not set" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
-
-          #sed -i '/CONFIG_LOCALVERSION/d' ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
-          #echo 'CONFIG_LOCALVERSION="-LXC"' >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
-
-          chmod +x $GITHUB_WORKSPACE/device_kernel/lxc/runcpatch.sh
-          if [ -f $GITHUB_WORKSPACE/device_kernel/kernel/cgroup/cgroup.c ]; then
-              sh $GITHUB_WORKSPACE/device_kernel/lxc/runcpatch.sh $GITHUB_WORKSPACE/device_kernel/kernel/cgroup/cgroup.c
-          fi
-
-          if [ -f $GITHUB_WORKSPACE/device_kernel/kernel/cgroup.c ]; then
-              sh $GITHUB_WORKSPACE/device_kernel/lxc/runcpatch.sh $GITHUB_WORKSPACE/device_kernel/kernel/cgroup.c
-          fi
-
-          if [ -f $GITHUB_WORKSPACE/device_kernel/net/netfilter/xt_qtaguid.c ]; then
-              patch -p0 < $GITHUB_WORKSPACE/device_kernel/lxc/xt_qtaguid.patch
-          fi
-
-          echo "LXC_ENABLE=lxc" >> $GITHUB_ENV
-
       - name: Patch Kernel of SUSFS
         if: env.SUSFS_ENABLE == 'true'
         run: |
@@ -494,7 +463,7 @@ jobs:
       - name : Set MIUI
         run : |
             echo "Set for MIUI dts....."
-            dts_source=./arch/arm64/boot/dts/vendor/qcom
+            dts_source=$GITHUB_WORKSPACE/device_kernel/arch/arm64/boot/dts/vendor/qcom
             # Backup dts
             cp -a ${dts_source} .dts.bak # Correct panel dimensions on MIUI builds
             sed -i 's/<154>/<1537>/g' ${dts_source}/dsi-panel-j1s*
