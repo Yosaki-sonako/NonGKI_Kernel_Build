@@ -244,6 +244,10 @@ jobs:
         run: |
             cd $GITHUB_WORKSPACE/device_kernel
             echo "CONFIG_SLAB_FREELIST_RANDOM=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
+            echo "CONFIG_PERF_CRITICAL_RT_TASK=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
+            echo "CONFIG_LOCALVERSION_AUTO=y"  >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
+            echo "CONFIG_SF_BINDER=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
+            echo "CONFIG_BOOTUP_RECLAIM=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
             echo "CONFIG_SF_BINDER=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
             # echo "CONFIG=DEBUG_FS=y >>" ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
             echo "CONFIG_MIGT=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
