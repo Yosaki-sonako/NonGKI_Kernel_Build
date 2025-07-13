@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
 env:
   HOOK_METHOD: "normal" # manual hook method,can choice vfs and normal.
+  REKERNEL_ENABLE: "true"
 
 jobs:
   build:
