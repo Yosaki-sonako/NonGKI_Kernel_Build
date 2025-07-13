@@ -464,8 +464,7 @@ jobs:
         run : |
             echo "Set for MIUI dts....."
             dts_source=$GITHUB_WORKSPACE/device_kernel/arch/arm64/boot/dts/vendor/qcom
-            # Backup dts
-            cp -a ${dts_source} .dts.bak # Correct panel dimensions on MIUI builds
+            # Correct panel dimensions on MIUI builds
             sed -i 's/<154>/<1537>/g' ${dts_source}/dsi-panel-j1s*
             sed -i 's/<154>/<1537>/g' ${dts_source}/dsi-panel-j2*
             sed -i 's/<155>/<1544>/g' ${dts_source}/dsi-panel-j3s-37-02-0a-dsc-video.dtsi
