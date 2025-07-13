@@ -481,7 +481,7 @@ jobs:
             echo "Doesn't found DTB! Your device maybe needn't the file."
           fi
 
-          cp -rp ./Anykernel3/* tmp
+          cp -rp ./anykernel3-test/* tmp
           cd tmp
           7za a -mx9 tmp.zip *
           cd ..
