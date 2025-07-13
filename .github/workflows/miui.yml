@@ -528,7 +528,7 @@ jobs:
 
       - name: Set dtb
         run: |
-            if [ -f "out/arch/arm64/boot/Image" ]; then
+            if [ -f "$GITHUB_WORKSPACE/device_kernel/out/arch/arm64/boot/Image" ]; then
               echo "The file [out/arch/arm64/boot/Image] exists. MIUI Build successfully."
                 else
               echo "The file [out/arch/arm64/boot/Image] does not exist. Seems MIUI build failed."
@@ -536,7 +536,7 @@ jobs:
             fi
             
             echo "Generating [out/arch/arm64/boot/dtb]......"
-            find out/arch/arm64/boot/dts -name '*.dtb' -exec cat {} + >out/arch/arm64/boot/dtb
+            find $GITHUB_WORKSPACE/device_kernel/out/arch/arm64/boot/dts -name '*.dtb' -exec cat {} + >out/arch/arm64/boot/dtb
             rm -rf ${dts_source}
             mv .dts.bak ${dts_source}
       
