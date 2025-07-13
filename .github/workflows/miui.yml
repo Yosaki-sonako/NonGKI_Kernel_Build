@@ -536,7 +536,7 @@ jobs:
             fi
             
             echo "Generating [out/arch/arm64/boot/dtb]......"
-            find $GITHUB_WORKSPACE/device_kernel/out/arch/arm64/boot/dts -name '*.dtb' -exec cat {} + >out/arch/arm64/boot/dtb
+            find $GITHUB_WORKSPACE/device_kernel/out/arch/arm64/boot/dts -name '*.dtb' -exec cat {} + >$GITHUB_WORKSPACE/device_kernel/out/arch/arm64/boot/dtb
             rm -rf ${dts_source}
             mv .dts.bak ${dts_source}
       
