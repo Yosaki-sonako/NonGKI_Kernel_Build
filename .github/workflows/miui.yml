@@ -249,7 +249,8 @@ jobs:
             echo "CONFIG_SF_BINDER=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
             echo "CONFIG_BOOTUP_RECLAIM=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
             echo "CONFIG_SF_BINDER=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
-            # echo "CONFIG=DEBUG_FS=y >>" ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
+            echo "CONFIG_OVERLAY_FS=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
+            echo "CONFIG=DEBUG_FS=y >>" ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
             echo "CONFIG_MIGT=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
             echo "CONFIG_MIGT_ENERGY_MODEL=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
             echo "CONFIG_MIHW=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
