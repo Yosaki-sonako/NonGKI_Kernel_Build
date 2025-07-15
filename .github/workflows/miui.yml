@@ -19,7 +19,7 @@ env:
 jobs:
   build:
     name: Build Kernel by ${{ github.actor }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-22.04-8-core
     env:
       CCACHE_COMPILERCHECK: "%compiler% -dumpmachine; %compiler% -dumpversion"
       CCACHE_NOHASHDIR: "true"
@@ -94,7 +94,7 @@ jobs:
         with:
           root-reserve-mb: 20480
           temp-reserve-mb: 4096
-          swap-size-mb: 8192
+          swap-size-mb: 12288
           remove-dotnet: "true"
           remove-android: "false"
           remove-haskell: "true"
