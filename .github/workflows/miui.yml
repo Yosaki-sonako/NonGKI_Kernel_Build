@@ -483,6 +483,15 @@ jobs:
         with:
           key: build-kernel-${{ env.DEVICE_NAME }}${{ env.UPLOADNAME }}
           max-size: 10G
+
+      - name: Add Swap Space
+        run: |
+          echo "Adding 16G of swap space"
+          sudo fallocate -l 16G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          sudo swapon --show
           
       - name : Set MIUI
         if: env.MIUI == 'true'
