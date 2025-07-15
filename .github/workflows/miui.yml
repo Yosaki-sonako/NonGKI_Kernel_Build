@@ -15,7 +15,7 @@ env:
   KPM_PATCH_SOURCE: "https://raw.githubusercontent.com/ShirkNeko/SukiSU_patch/refs/heads/main/kpm/patch_linux" # patch exec file source -> raw.githubusercontent.com/Test/Test/patch .
   BUILD_DEBUGGER: "false" # Output build errors.
   REKERNEL_ENABLE: "false"
-  MIUI_CONFIG: "false"
+  MIUI_CONFIG: "true"
 jobs:
   build:
     name: Build Kernel by ${{ github.actor }}
@@ -555,7 +555,7 @@ jobs:
             make O=out ARCH=arm64 $${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.DEFCONFIG_NAME }}
             make -j$(nproc --all) O=out ARCH=arm64 ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }}
           else
-            make CC="ccache clang" O=out ARCH=arm64 ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.DEFCONFIG_NAME }} vendor/xiaomi/magictime-common.config
+            make CC="ccache clang" O=out ARCH=arm64 ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.DEFCONFIG_NAME }} vendor/xiaomi/sm8250-common.config
             # make -j$(nproc --all) CC="ccache clang" O=out ARCH=arm64 ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }}
             make -j2 CC="ccache clang" O=out ARCH=arm64 ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }}
           fi
