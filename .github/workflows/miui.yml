@@ -94,7 +94,7 @@ jobs:
         with:
           root-reserve-mb: 20480
           temp-reserve-mb: 4096
-          swap-size-mb: 12288
+          swap-size-mb: 16384
           remove-dotnet: "true"
           remove-android: "false"
           remove-haskell: "true"
@@ -247,10 +247,8 @@ jobs:
             cd $GITHUB_WORKSPACE/device_kernel
             echo "CONFIG_SLAB_FREELIST_RANDOM=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
             echo "CONFIG_PERF_CRITICAL_RT_TASK=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
-            echo "CONFIG_LOCALVERSION_AUTO=y"  >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
             echo "CONFIG_SF_BINDER=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
             echo "CONFIG_BOOTUP_RECLAIM=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
-            echo "CONFIG_SF_BINDER=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
             echo "CONFIG_OVERLAY_FS=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
             echo "CONFIG=DEBUG_FS=y >>" ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
             echo "CONFIG_MIGT=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
@@ -266,8 +264,6 @@ jobs:
             echo "CONFIG_MI_MEMORY_SYSFS=y"  >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
             echo "CONFIG_TASK_DELAY_ACCT=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
             echo "CONFIG_MIUI_ZRAM_MEMORY_TRACKING=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
-            echo "CONFIG_MODULE_SIG_SHA512=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
-            echo "CONFIG_MODULE_SIG_HASH=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
             echo "CONFIG_MI_FRAGMENTION=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
             echo "CONFIG_PERF_HELPER=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
             echo "CONFIG_MI_RECLAIM=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
