@@ -242,6 +242,7 @@ jobs:
           
       - name: Set MIUI DEFCONFIG
         run: |
+            if [[ "${{ env.MIUI }}" == "true" ]]; then
             cd $GITHUB_WORKSPACE/device_kernel
             echo "CONFIG_SLAB_FREELIST_RANDOM=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
             echo "CONFIG_PERF_CRITICAL_RT_TASK=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
@@ -270,6 +271,7 @@ jobs:
             echo "CONFIG_PERF_HELPER=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
             echo "CONFIG_MI_RECLAIM=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
             echo "CONDIG_RTMM=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
+            fi
         
       - name: Set Pack Method and KernelSU and SUSFS
         run: |
@@ -487,6 +489,7 @@ jobs:
           
       - name : Set MIUI
         run : |
+            if [[ "${{ env.MIUI }}" == "true" ]]; then
             echo "Set for MIUI dts....."
             dts_source=$GITHUB_WORKSPACE/device_kernel/arch/arm64/boot/dts/vendor/qcom
             # Correct panel dimensions on MIUI builds
@@ -534,7 +537,8 @@ jobs:
             sed -i 's/\/\/39 01 00 00 00 00 05 51 07 FF 00 00/39 01 00 00 00 00 05 51 07 FF 00 00/g' ${dts_source}/dsi-panel-j2s-mp-42-02-0a-dsc-cmd.dtsi
             sed -i 's/\/\/39 01 00 00 01 00 03 51 03 FF/39 01 00 00 01 00 03 51 03 FF/g' ${dts_source}/dsi-panel-j11-38-08-0a-fhd-cmd.dtsi
             sed -i 's/\/\/39 01 00 00 11 00 03 51 03 FF/39 01 00 00 11 00 03 51 03 FF/g' ${dts_source}/dsi-panel-j2-p2-1-38-0c-0a-dsc-cmd.dtsi
-
+            fi
+            
       - name: Build Kernel
         run: |
           export PATH=$GITHUB_WORKSPACE/clang-custom/bin:$PATH
@@ -550,7 +554,7 @@ jobs:
             make -j$(nproc --all) CC="ccache clang" O=out ARCH=arm64 ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }}
           fi
 
-      - name: Set dtb
+      - name: Cat MIUI dtb
         run: |
             if [ -f "$GITHUB_WORKSPACE/device_kernel/out/arch/arm64/boot/Image" ]; then
               echo "The file [out/arch/arm64/boot/Image] exists. MIUI Build successfully."
