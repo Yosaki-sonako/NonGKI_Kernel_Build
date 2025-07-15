@@ -482,7 +482,7 @@ jobs:
         uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: build-kernel-${{ env.DEVICE_NAME }}${{ env.UPLOADNAME }}
-          max-size: 2G
+          max-size: 10G
           
       - name : Set MIUI
         if: env.MIUI == 'true'
