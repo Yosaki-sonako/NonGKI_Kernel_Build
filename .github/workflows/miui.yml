@@ -192,7 +192,7 @@ jobs:
           elif [[ "${{ env.CLANG_SOURCE }}" == *'.tar.xz' ]]; then
             wget -O clang.tar.xz ${{ env.CLANG_SOURCE }}
             mkdir clang-custom
-            tar -C clang-custom/ -zxvf clang.tar.xz --strip-components 1
+            tar -C clang-custom/ -zxvf clang.tar.xz --strip-components=1
           elif [[ "${{ env.CLANG_SOURCE }}" == *'.zip' ]]; then
             wget -O clang.zip ${{ env.CLANG_SOURCE }}
             mkdir clang-custom
@@ -270,7 +270,7 @@ jobs:
             echo "CONFIG_MI_FRAGMENTION=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
             echo "CONFIG_PERF_HELPER=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
             echo "CONFIG_MI_RECLAIM=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
-            echo "CONDIG_RTMM=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
+            echo "CONFIG_RTMM=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
             fi
         
       - name: Set Pack Method and KernelSU and SUSFS
@@ -321,7 +321,7 @@ jobs:
           if [[ -d "${{ env.KERNELSU_NAME }}/kernel/kpm" ]]; then
             if [ -f "include/linux/set_memory.h" ] && [ "${{ env.KPM_ENABLE }}" == "true" ]; then
                 echo "CONFIG_KPM=y" >> ./arch/arm64/configs/${{ env.DEFCONFIG_NAME }}
-                wget "${{ env.KPM_PATCH_SOURCE }}" -o patch
+                wget "${{ env.KPM_PATCH_SOURCE }}" -O patch
                 chmod 777 patch
                 echo "Set KPM successfully !"
             elif [ "$KPM_ENABLE" == "true" ]; then
