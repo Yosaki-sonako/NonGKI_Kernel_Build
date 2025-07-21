@@ -182,30 +182,64 @@ jobs:
             echo "GCC_32=CROSS_COMPILE_ARM32=$GITHUB_WORKSPACE/gcc-32/bin/$GCC_32_BIN" >> $GITHUB_ENV
           fi
 
-          # Set Clang
+          
+          # clang
+          set -e
+
+          echo "--- 开始设置编译环境 ---"
+          
+          echo "[步骤 1/6] 检查环境变量..."
+          echo "CLANG_SOURCE 的值是: ${{ env.CLANG_SOURCE }}"
+          echo "CLANG_BRANCH 的值是: ${{ env.CLANG_BRANCH }}" # 如果是 tar.gz，这个可以为空
+
+          if [[ -z "${{ env.CLANG_SOURCE }}" ]]; then
+            echo "错误：CLANG_SOURCE 环境变量为空！"
+            exit 1
+          fi
+
+          # 根据 CLANG_SOURCE 的格式执行不同操作
           if [[ "${{ env.CLANG_SOURCE }}" == *".git" ]]; then
-            git clone ${{ env.CLANG_SOURCE }} -b ${{ env.CLANG_BRANCH }} clang-custom --depth=1
+            echo "[步骤 2/6] 检测到 .git 源，准备克隆仓库..."
+            git clone "${{ env.CLANG_SOURCE }}" -b "${{ env.CLANG_BRANCH }}" clang-custom --depth=1
+            echo "[步骤 3/6] git clone 命令执行完毕。"
+          
           elif [[ "${{ env.CLANG_SOURCE }}" == *'.tar.gz' ]]; then
+            echo "[步骤 2/6] 检测到 .tar.gz 源，准备下载和解压..."
             wget -O clang.tar.gz ${{ env.CLANG_SOURCE }}
             mkdir clang-custom
-            tar -C clang-custom/ -zxvf clang.tar.gz --strip-components 1
-          elif [[ "${{ env.CLANG_SOURCE }}" == *'.tar.xz' ]]; then
-            wget -O clang.tar.xz ${{ env.CLANG_SOURCE }}
-            mkdir clang-custom
-            tar -C clang-custom/ -zxvf clang.tar.xz
-          elif [[ "${{ env.CLANG_SOURCE }}" == *'.zip' ]]; then
-            wget -O clang.zip ${{ env.CLANG_SOURCE }}
-            mkdir clang-custom
-            unzip clang.zip -d clang-custom/
-          elif [[ "${{ env.CLANG_SOURCE }}" == *"antman" ]]; then
-            mkdir clang-custom
-            cd clang-custom
-            wget ${{ env.CLANG_SOURCE }} -o antman
-            chmod +x antman
-            bash antman -S
+            # ZyCromerZ 的包通常需要 --strip-components=1
+            tar -C clang-custom/ -zxvf clang.tar.gz --strip-components=1
+            echo "[步骤 3/6] 下载和解压操作执行完毕。"
+          
           else
-            echo "Not supported format of Clang!"
+            echo "错误：不支持的 CLANG_SOURCE 格式（目前只支持 .git 和 .tar.gz）！"
+            exit 1
           fi
+
+          echo "[步骤 4/6] 检查 'clang-custom' 目录的内容..."
+          if [ -d "clang-custom" ]; then
+            # ls -lR 会递归列出所有文件，帮助我们看清目录结构
+            ls -lR clang-custom
+          else
+            echo "错误：'clang-custom' 目录不存在！下载或解压步骤肯定失败了。"
+            exit 1
+          fi
+
+          echo "[步骤 5/6] 精确查找 'ld.lld' 文件..."
+          if [ -f "clang-custom/bin/ld.lld" ]; then
+            echo "成功！在 clang-custom/bin/ld.lld 找到了目标文件。"
+          else
+            echo "！！！错误：在 clang-custom/bin/ 目录中未找到 ld.lld 文件！！！"
+            echo "这通常意味着目录结构不正确，或者下载的包有问题。"
+            echo "正在 'clang-custom' 目录下尝试全局搜索 ld.lld ..."
+            find clang-custom -name "ld.lld"
+            # 找不到文件，就让任务失败
+            exit 1
+          fi
+          
+          echo "[步骤 6/6] 将 Clang 路径添加到 GITHUB_PATH..."
+          echo "$GITHUB_WORKSPACE/clang-custom/bin" >> $GITHUB_PATH
+          echo "--- 编译环境设置成功 ---"
 
       - name: Get Kernel Source
         run: |
