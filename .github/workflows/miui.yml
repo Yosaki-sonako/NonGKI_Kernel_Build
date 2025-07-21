@@ -208,7 +208,7 @@ jobs:
             wget -O clang.tar.gz ${{ env.CLANG_SOURCE }}
             mkdir clang-custom
             # ZyCromerZ 的包通常需要 --strip-components=1
-            tar -C clang-custom/ -zxvf clang.tar.gz --strip-components=1
+            tar -C clang-custom/ -zxvf clang.tar.gz 
             echo "[步骤 3/6] 下载和解压操作执行完毕。"
           
           else
