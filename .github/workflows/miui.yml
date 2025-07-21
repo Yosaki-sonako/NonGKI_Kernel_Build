@@ -192,7 +192,7 @@ jobs:
           elif [[ "${{ env.CLANG_SOURCE }}" == *'.tar.xz' ]]; then
             wget -O clang.tar.xz ${{ env.CLANG_SOURCE }}
             mkdir clang-custom
-            tar -C clang-custom/ -xvf clang.tar.xz --strip-components 1
+            tar -C clang-custom/ -zxvf clang.tar.xz --strip-components 1
           elif [[ "${{ env.CLANG_SOURCE }}" == *'.zip' ]]; then
             wget -O clang.zip ${{ env.CLANG_SOURCE }}
             mkdir clang-custom
@@ -206,6 +206,9 @@ jobs:
           else
             echo "Not supported format of Clang!"
           fi
+          # 关键步骤：将 Clang 工具链的 bin 目录添加到 PATH
+          echo "Adding Clang to PATH..."
+          echo "$GITHUB_WORKSPACE/clang-custom/bin" >> $GITHUB_PATH
 
       - name: Get Kernel Source
         run: |
