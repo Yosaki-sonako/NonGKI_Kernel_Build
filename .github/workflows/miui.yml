@@ -200,7 +200,7 @@ jobs:
           elif [[ "${{ env.CLANG_SOURCE }}" == *"antman" ]]; then
             mkdir clang-custom
             cd clang-custom
-            wget ${{ env.CLANG_SOURCE }} -O antman
+            wget ${{ env.CLANG_SOURCE }} -o antman
             chmod +x antman
             bash antman -S
           else
