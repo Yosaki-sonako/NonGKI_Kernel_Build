@@ -192,7 +192,7 @@ jobs:
           elif [[ "${{ env.CLANG_SOURCE }}" == *'.tar.xz' ]]; then
             wget -O clang.tar.xz ${{ env.CLANG_SOURCE }}
             mkdir clang-custom
-            tar -C clang-custom/ -zxvf clang.tar.xz --strip-components=1
+            tar -C clang-custom/ -zxvf clang.tar.xz
           elif [[ "${{ env.CLANG_SOURCE }}" == *'.zip' ]]; then
             wget -O clang.zip ${{ env.CLANG_SOURCE }}
             mkdir clang-custom
