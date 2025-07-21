@@ -210,6 +210,17 @@ jobs:
           echo "Adding Clang to PATH..."
           echo "$GITHUB_WORKSPACE/clang-custom/bin" >> $GITHUB_PATH
 
+      - name: Debug Clang Toolchain Path
+        run: |
+          echo "--- Checking contents of clang-custom directory ---"
+          ls -lR $GITHUB_WORKSPACE/clang-custom
+
+          echo "--- Searching for ld.lld ---"
+          find $GITHUB_WORKSPACE/clang-custom -name "ld.lld"
+          
+          echo "--- Verifying PATH variable for next steps ---"
+          echo $PATH
+
       - name: Get Kernel Source
         run: |
           cd $GITHUB_WORKSPACE
@@ -485,7 +496,7 @@ jobs:
         uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: build-kernel-${{ env.DEVICE_NAME }}${{ env.UPLOADNAME }}
-          max-size: 10G
+          max-size: 2G
 
       - name: Add Swap Space
         run: |
@@ -548,8 +559,14 @@ jobs:
             
       - name: Build Kernel
         run: |
+          echo $PATH
+          echo "--- Checking for ld.lld with 'which' command ---"
+          which ld.lld || echo "ld.lld not found in PATH"
+
+          cd $GITHUB_WORKSPACE/device_kernel
           export PATH=$GITHUB_WORKSPACE/clang-custom/bin:$PATH
           cd $GITHUB_WORKSPACE/device_kernel/
+          
           if [ -z "${{ env.GCC_32 }}" ] && [ -z "${{ env.GCC_64 }}" ]; then
             make CC="ccache clang" O=out ARCH=arm64 ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.DEFCONFIG_NAME }}
             make -j$(nproc --all) CC="ccache clang" O=out ARCH=arm64 ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }}
