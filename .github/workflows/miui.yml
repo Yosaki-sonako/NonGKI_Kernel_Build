@@ -210,6 +210,14 @@ jobs:
             # ZyCromerZ 的包通常需要 --strip-components=1
             tar -C clang-custom/ -zxvf clang.tar.gz 
             echo "[步骤 3/6] 下载和解压操作执行完毕。"
+
+          elif [[ "${{ env.CLANG_SOURCE }}" == *'.zip' ]]; then
+            echo "[步骤 2/6] 检测到 .zip 源，准备下载和解压..."
+            wget -O clang.zip ${{ env.CLANG_SOURCE }}
+            mkdir clang-custom
+            # 使用 unzip 的 -d 参数将文件解压到 clang-custom 目录
+            unzip clang.zip -d clang-custom/
+            echo "[步骤 3/6] 下载和解压操作执行完毕。"
           
           else
             echo "错误：不支持的 CLANG_SOURCE 格式（目前只支持 .git 和 .tar.gz）！"
