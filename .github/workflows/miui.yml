@@ -188,7 +188,7 @@ jobs:
           elif [[ "${{ env.CLANG_SOURCE }}" == *'.tar.gz' ]]; then
             wget -O clang.tar.gz ${{ env.CLANG_SOURCE }}
             mkdir clang-custom
-            tar -C clang-custom/ -zxvf clang.tar.gz --strip-components=1
+            tar -C clang-custom/ -zxvf clang.tar.gz --strip-components 1
           elif [[ "${{ env.CLANG_SOURCE }}" == *'.tar.xz' ]]; then
             wget -O clang.tar.xz ${{ env.CLANG_SOURCE }}
             mkdir clang-custom
@@ -545,14 +545,6 @@ jobs:
             
       - name: Build Kernel
         run: |
-          echo $PATH
-          echo "--- Checking for ld.lld with 'which' command ---"
-          which ld.lld || echo "ld.lld not found in PATH"
-
-          cd $GITHUB_WORKSPACE/device_kernel
-          export PATH=$GITHUB_WORKSPACE/clang-custom/bin:$PATH
-          cd $GITHUB_WORKSPACE/device_kernel/
-          
           if [ -z "${{ env.GCC_32 }}" ] && [ -z "${{ env.GCC_64 }}" ]; then
             make CC="ccache clang" O=out ARCH=arm64 ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.DEFCONFIG_NAME }}
             make -j$(nproc --all) CC="ccache clang" O=out ARCH=arm64 ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }}
