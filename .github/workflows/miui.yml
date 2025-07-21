@@ -149,7 +149,7 @@ jobs:
             if [[ "${{ env.GCC_64_SOURCE }}" == *'.tar.gz' ]]; then
               wget -O gcc-64.tar.gz ${{ env.GCC_64_SOURCE }}
               mkdir gcc-64
-              tar -C gcc-64/ -zxvf gcc-64.tar.gz
+              tar -C gcc-64/ -xvf gcc-64.tar.gz
             fi
             if [[ "${{ env.GCC_64_SOURCE }}" == *'.zip' ]]; then
               wget -O gcc-64.zip ${{ env.GCC_64_SOURCE }}
