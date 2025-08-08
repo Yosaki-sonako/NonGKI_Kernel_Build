@@ -519,25 +519,12 @@ jobs:
           path: rekernel_project     
 
       - name: Apply Re-Kernel Patches
+        if: env.REKERNEL_ENABLE == 'true'
         run: |
           cd $GITHUB_WORKSPACE/device_kernel/
           echo "Applying Re-Kernel patches..."
           bash ../rekernel_project/Integrate/patches.sh
           echo "Patches applied successfully."
-
-      - name: Patch Kernel of Re:Kernel
-        if: env.REKERNEL_ENABLE == 'true'
-        run: |
-          cd $GITHUB_WORKSPACE/device_kernel/
-          PATCH_FILE="/tmp/Patches/Rekernel/rekernel-${{ env.KERNEL_VERSION }}.patch"
-
-          if [ -f "$PATCH_FILE" ]; then
-            cp /tmp/Patches/Rekernel/rekernel-${{ env.KERNEL_VERSION }}.patch ./
-            patch -p1 < rekernel-${{ env.KERNEL_VERSION }}.patch || true
-            echo "Re:Kernel Patched."
-          else
-            echo "Your kernel not supported it."
-          fi
           
       - name: Fixed Kernel Patch
         if: env.SUSFS_ENABLE == 'true' && env.SUSFS_FIXED == 'true'
