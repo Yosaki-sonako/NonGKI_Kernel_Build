@@ -170,7 +170,6 @@ index 2591f2234df4..e49c876e6848 100644
  				int is_async,
  				int pid)
  {
-+	struct task_struct *proc_task = NULL;
  	struct rb_node *n = alloc->free_buffers.rb_node;
  	struct binder_buffer *buffer;
  	size_t buffer_size;
