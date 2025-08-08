@@ -521,13 +521,24 @@ jobs:
           if [ -f "$PATCH_FILE" ]; then
             cp /tmp/Patches/Rekernel/rekernel-${{ env.KERNEL_VERSION }}.patch ./
             patch -p1 < rekernel-${{ env.KERNEL_VERSION }}.patch || true
-            cp /tmp/Patches/Rekernel/patches.sh ./
-            bash patches.sh
             echo "Re:Kernel Patched."
           else
             echo "Your kernel not supported it."
           fi
+          
+      - name: Checkout Re-Kernel Project
+        uses: actions/checkout@v4
+        with:
+          repository: Sakion-Team/Re-Kernel
+          path: rekernel_project     
 
+      - name: Apply Re-Kernel Patches
+        run: |
+          cd $GITHUB_WORKSPACE/device_kernel/
+          echo "Applying Re-Kernel patches..."
+          bash ../rekernel_project/Integrate/patches.sh
+          echo "Patches applied successfully."
+          
       - name: Fixed Kernel Patch
         if: env.SUSFS_ENABLE == 'true' && env.SUSFS_FIXED == 'true'
         run: |
