@@ -514,6 +514,7 @@ jobs:
           
       - name: Checkout Re-Kernel Project
         uses: actions/checkout@v4
+        if: env.REKERNEL_ENABLE == 'true'
         with:
           repository: Sakion-Team/Re-Kernel
           path: rekernel_project     
@@ -524,10 +525,45 @@ jobs:
           cd $GITHUB_WORKSPACE/device_kernel/
           echo "Applying Re-Kernel patches..."
           bash ../rekernel_project/Integrate/patches.sh
+          echo "Fixing: conflicting types for 'frozen_task_group'"
+          sed -i 's/frozen_task_group/rekernel_frozen_task_group/g' drivers/rekernel/rekernel.h
+          echo "Fixing: declaration-after-statement in kernel/signal.c"
+          patch -p1 <<'EOF'
+          --- a/kernel/signal.c
+          +++ b/kernel/signal.c
+          @@ -1282,9 +1282,9 @@
+           {
+                  int ret;
+           
+          -       ret = __group_send_sig_info(sig, info, p, pid_type);
+                  struct millet_data data;
+          +       ret = __group_send_sig_info(sig, info, p, pid_type);
+           
+                  if (unlikely(ret && sig_is_ok(sig))) {
+                          data.sig = sig;
+          EOF
+
+          echo "Hotfixes applied successfully."
+
           echo "Patches applied successfully."
+
+      - name: Patch Kernel of Re:Kernel
+        if: env.REKERNEL_ENABLE == 'true'
+        run: |
+          cd $GITHUB_WORKSPACE/device_kernel/
+          PATCH_FILE="/tmp/Patches/Rekernel/rekernel-${{ env.KERNEL_VERSION }}.patch"
+
+          if [ -f "$PATCH_FILE" ]; then
+            cp /tmp/Patches/Rekernel/rekernel-${{ env.KERNEL_VERSION }}.patch ./
+            patch -p1 < rekernel-${{ env.KERNEL_VERSION }}.patch || true
+            echo "Re:Kernel Patched."
+          else
+            echo "Your kernel not supported it."
+          fi
+          
           
       - name: Fixed Kernel Patch
-        if: env.SUSFS_ENABLE == 'true' && env.SUSFS_FIXED == 'true'
+        if: env.REKERNEL_ENABLE == 'true'
         run: |
           # if need susfs " env.SUSFS_ENABLE == 'true' && env.SUSFS_FIXED == 'true' "
         
