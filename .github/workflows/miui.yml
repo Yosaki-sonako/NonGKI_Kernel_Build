@@ -14,7 +14,7 @@ env:
   KPM_ENABLE: "false" # Only use it for SukiSU-Ultra.
   KPM_PATCH_SOURCE: "https://raw.githubusercontent.com/ShirkNeko/SukiSU_patch/refs/heads/main/kpm/patch_linux" # patch exec file source -> raw.githubusercontent.com/Test/Test/patch .
   BUILD_DEBUGGER: "false" # Output build errors.
-  REKERNEL_ENABLE: "false"
+  REKERNEL_ENABLE: "true"
   MIUI_CONFIG: "true"
 jobs:
   build:
