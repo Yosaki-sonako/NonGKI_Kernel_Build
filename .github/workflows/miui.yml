@@ -519,8 +519,8 @@ jobs:
           PATCH_FILE="/tmp/Patches/Rekernel/rekernel-${{ env.KERNEL_VERSION }}.patch"
 
           if [ -f "$PATCH_FILE" ]; then
-            cp /tmp/Patches/Rekernel/patches.sh ./
-            bash patches.sh
+            # cp /tmp/Patches/Rekernel/patches.sh ./
+            # bash patches.sh
             cp /tmp/Patches/Rekernel/rekernel-${{ env.KERNEL_VERSION }}.patch ./
             patch -p1 < rekernel-${{ env.KERNEL_VERSION }}.patch || true
             echo "Re:Kernel Patched."
