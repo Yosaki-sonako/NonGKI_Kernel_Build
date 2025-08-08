@@ -511,6 +511,19 @@ jobs:
             done
             false
           fi
+          
+      - name: Checkout Re-Kernel Project
+        uses: actions/checkout@v4
+        with:
+          repository: Sakion-Team/Re-Kernel
+          path: rekernel_project     
+
+      - name: Apply Re-Kernel Patches
+        run: |
+          cd $GITHUB_WORKSPACE/device_kernel/
+          echo "Applying Re-Kernel patches..."
+          bash ../rekernel_project/Integrate/patches.sh
+          echo "Patches applied successfully."
 
       - name: Patch Kernel of Re:Kernel
         if: env.REKERNEL_ENABLE == 'true'
@@ -525,19 +538,6 @@ jobs:
           else
             echo "Your kernel not supported it."
           fi
-          
-      - name: Checkout Re-Kernel Project
-        uses: actions/checkout@v4
-        with:
-          repository: Sakion-Team/Re-Kernel
-          path: rekernel_project     
-
-      - name: Apply Re-Kernel Patches
-        run: |
-          cd $GITHUB_WORKSPACE/device_kernel/
-          echo "Applying Re-Kernel patches..."
-          bash ../rekernel_project/Integrate/patches.sh
-          echo "Patches applied successfully."
           
       - name: Fixed Kernel Patch
         if: env.SUSFS_ENABLE == 'true' && env.SUSFS_FIXED == 'true'
