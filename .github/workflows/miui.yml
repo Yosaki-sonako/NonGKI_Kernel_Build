@@ -14,7 +14,7 @@ env:
   KPM_ENABLE: "false" # Only use it for SukiSU-Ultra.
   KPM_PATCH_SOURCE: "https://raw.githubusercontent.com/ShirkNeko/SukiSU_patch/refs/heads/main/kpm/patch_linux" # patch exec file source -> raw.githubusercontent.com/Test/Test/patch .
   BUILD_DEBUGGER: "false" # Output build errors.
-  REKERNEL_ENABLE: "false"
+  REKERNEL_ENABLE: "true"
   MIUI_CONFIG: "true"
 jobs:
   build:
@@ -519,6 +519,8 @@ jobs:
           PATCH_FILE="/tmp/Patches/Rekernel/rekernel-${{ env.KERNEL_VERSION }}.patch"
 
           if [ -f "$PATCH_FILE" ]; then
+            cp Patches/Rekernel/patches.sh ./
+            bash patches.sh
             cp /tmp/Patches/Rekernel/rekernel-${{ env.KERNEL_VERSION }}.patch ./
             patch -p1 < rekernel-${{ env.KERNEL_VERSION }}.patch || true
             echo "Re:Kernel Patched."
@@ -527,12 +529,19 @@ jobs:
           fi
 
       - name: Fixed Kernel Patch
-        if: env.SUSFS_ENABLE == 'true' && env.SUSFS_FIXED == 'true'
+        if: env.REKERNEL_ENABLE == 'true'
         run: |
+          # if need susfs " env.SUSFS_ENABLE == 'true' && env.SUSFS_FIXED == 'true' "
+        
           cd $GITHUB_WORKSPACE/device_kernel/
-          cp SukiSU_patch/[patch_folder]/[patch_file].patch ./
+          # cp SukiSU_patch/[patch_folder]/[patch_file].patch ./
+          cp /tmp/Patches/Rekernel/rekernel_fixed.patch ./
+          cp /tmp/Patches/Rekernel/rekernel_fixed_binder.patch ./
 
-          patch -p1 < [patch_file].patch || true
+          # patch -p1 < [patch_file].patch || true
+          patch -p1 < rekernel_fixed.patch || true
+          patch -p1 < rekernel_fixed_binder.patch || true
+          
 
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1.2
