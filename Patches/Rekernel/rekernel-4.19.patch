@@ -19,7 +19,7 @@ index 2f53135f14c0..2fd25c4845e9 100644
 +	return frozen(task) || freezing(task);
 +}
 +
-+static int send_netlink_message(char *msg, uint16_t len) {
++static int __attribute__((unused)) send_netlink_message(char *msg, uint16_t len) {
 +    struct sk_buff *skbuffer;
 +    struct nlmsghdr *nlhdr;
 +
@@ -40,7 +40,7 @@ index 2f53135f14c0..2fd25c4845e9 100644
 +    return netlink_unicast(rekernel_netlink, skbuffer, REKERNEL_USER_PORT, MSG_DONTWAIT);
 +}
 +
-+static int start_rekernel_server(void) {
++static int __attribute__((unused)) start_rekernel_server(void) {
 +  extern struct net init_net;
 +  struct netlink_kernel_cfg rekernel_cfg = { 
 +    .input = NULL,
@@ -122,7 +122,7 @@ index 2591f2234df4..e49c876e6848 100644
 +	return frozen(task) || freezing(task);
 +}
 +
-+static int send_netlink_message(char *msg, uint16_t len) {
++static int __attribute__((unused)) send_netlink_message(char *msg, uint16_t len) {
 +    struct sk_buff *skbuffer;
 +    struct nlmsghdr *nlhdr;
 +
@@ -143,7 +143,7 @@ index 2591f2234df4..e49c876e6848 100644
 +    return netlink_unicast(rekernel_netlink, skbuffer, REKERNEL_USER_PORT, MSG_DONTWAIT);
 +}
 +
-+static int start_rekernel_server(void) {
++static int __attribute__((unused)) start_rekernel_server(void) {
 +  extern struct net init_net;
 +  struct netlink_kernel_cfg rekernel_cfg = { 
 +    .input = NULL,
@@ -245,7 +245,7 @@ index bfd8f5fbe97f..2d10226f3a2a 100644
 +	return frozen(task) || freezing(task);
 +}
 +
-+static int send_netlink_message(char *msg, uint16_t len) {
++static int __attribute__((unused)) send_netlink_message(char *msg, uint16_t len) {
 +    struct sk_buff *skbuffer;
 +    struct nlmsghdr *nlhdr;
 +
@@ -266,7 +266,7 @@ index bfd8f5fbe97f..2d10226f3a2a 100644
 +    return netlink_unicast(rekernel_netlink, skbuffer, REKERNEL_USER_PORT, MSG_DONTWAIT);
 +}
 +
-+static int start_rekernel_server(void) {
++static int __attribute__((unused)) start_rekernel_server(void) {
 +  extern struct net init_net;
 +  struct netlink_kernel_cfg rekernel_cfg = { 
 +    .input = NULL,
