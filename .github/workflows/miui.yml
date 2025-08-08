@@ -530,11 +530,23 @@ jobs:
           sed -i 's/frozen_task_group/rekernel_frozen_task_group/g' drivers/rekernel/rekernel.h
 
           echo "Fixing: declaration-after-statement in kernel/signal.c"
-          line_to_move=$(grep -m 1 "struct millet_data data;" kernel/signal.c)
-          sed -i '/struct millet_data data;/d' kernel/signal.c
-          sed -i '/ret = __group_send_sig_info/i\'"$line_to_move" kernel/signal.c
-          echo "Hotfixes applied successfully."
+          patch -p1 <<'EOF'
+          --- a/kernel/signal.c
+          +++ b/kernel/signal.c
+          @@ -1282,8 +1282,9 @@
+           {
+                  int ret;
+           
+          -       ret = __group_send_sig_info(sig, info, p, pid_type);
+                  struct millet_data data;
+          +
+          +       ret = __group_send_sig_info(sig, info, p, pid_type);
+           
+                  if (unlikely(ret && sig_is_ok(sig))) {
+                          data.sig = sig;
+          EOF
 
+          echo "All hotfixes applied successfully."
           echo "Patches applied successfully."
 
       - name: Patch Kernel of Re:Kernel
