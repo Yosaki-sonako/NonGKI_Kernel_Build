@@ -523,7 +523,7 @@ jobs:
 
           if [ -f "$PATCH_FILE" ]; then
             cp /tmp/Patches/Rekernel/rekernel-${{ env.KERNEL_VERSION }}-for-fixed.patch ./
-            patch -p1 < rekernel-${{ env.KERNEL_VERSION }}-for-fixed.patch || true
+            patch -p1 < rekernel-${{ env.KERNEL_VERSION }}.patch || true
             echo "Re:Kernel Patched."
           else
             echo "Your kernel not supported it."
