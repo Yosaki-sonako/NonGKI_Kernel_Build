@@ -738,9 +738,6 @@ jobs:
             -e ANDROID_SIMPLE_LMK \
             -e CPU_FREQ_GOV_SCHEDHORIZON \
             -e CPU_FREQ_DEFAULT_GOV_SCHEDHORIZON \
-            --set-val LITTLE_CPU_MASK 15 \
-            --set-val BIG_CPU_MASK 112 \
-            --set-val PRIME_CPU_MASK 128 \
             -e LRU_GEN \
             -e LRU_GEN_ENABLED
             
