@@ -15,6 +15,7 @@ env:
   KPM_PATCH_SOURCE: "https://raw.githubusercontent.com/ShirkNeko/SukiSU_patch/refs/heads/main/kpm/patch_linux" # patch exec file source -> raw.githubusercontent.com/Test/Test/patch .
   BUILD_DEBUGGER: "false" # Output build errors.
   REKERNEL_ENABLE: "true"
+  REKERNEL_FILE: "false"
   MIUI_CONFIG: "false"
   SYSTEM: "miui"
   CONFIG: "true"
@@ -523,7 +524,7 @@ jobs:
           path: rekernel_project     
 
       - name: Apply Re-Kernel Patches
-        if: env.REKERNEL_ENABLE == 'true'
+        if: env.REKERNEL_FILE == 'true'
         run: |
           cd $GITHUB_WORKSPACE/device_kernel/
           echo "Applying Re-Kernel patches..."
