@@ -519,7 +519,7 @@ jobs:
         uses: actions/checkout@v4
         if: env.REKERNEL_ENABLE == 'true'
         with:
-          repository: Sakion-Team/Re-Kernel
+          repository: sonako0122/Re-Kernel
           path: rekernel_project     
 
       - name: Apply Re-Kernel Patches
@@ -532,7 +532,7 @@ jobs:
           echo "Patches applied successfully."
 
       - name: Patch Kernel of Re:Kernel
-        if: env.SUSFS_ENABLE == 'true' && env.SUSFS_FIXED == 'true'
+        if: env.REKERNEL_ENABLE == 'true'
         run: |
           cd $GITHUB_WORKSPACE/device_kernel/
           PATCH_FILE="/tmp/Patches/Rekernel/rekernel-${{ env.KERNEL_VERSION }}.patch"
