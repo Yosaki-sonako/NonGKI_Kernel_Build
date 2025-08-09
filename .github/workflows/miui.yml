@@ -16,7 +16,6 @@ env:
   BUILD_DEBUGGER: "false" # Output build errors.
   REKERNEL_ENABLE: "false"
   REKERNEL_FILE: "false"
-  CONFIG: "true"
 jobs:
   build:
     name: Build Kernel by ${{ github.actor }}
