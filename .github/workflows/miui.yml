@@ -14,7 +14,7 @@ env:
   KPM_ENABLE: "false" # Only use it for SukiSU-Ultra.
   KPM_PATCH_SOURCE: "https://raw.githubusercontent.com/ShirkNeko/SukiSU_patch/refs/heads/main/kpm/patch_linux" # patch exec file source -> raw.githubusercontent.com/Test/Test/patch .
   BUILD_DEBUGGER: "false" # Output build errors.
-  REKERNEL_ENABLE: "false"
+  REKERNEL_ENABLE: "true"
   MIUI_CONFIG: "true"
 jobs:
   build:
@@ -526,27 +526,6 @@ jobs:
           echo "Applying Re-Kernel patches..."
           bash ../rekernel_project/Integrate/patches.sh
           
-          echo "Fixing: conflicting types for 'frozen_task_group'"
-          sed -i 's/frozen_task_group/rekernel_frozen_task_group/g' drivers/rekernel/rekernel.h
-
-          echo "Fixing: declaration-after-statement in kernel/signal.c"
-          patch -p1 <<'EOF'
-          --- a/kernel/signal.c
-          +++ b/kernel/signal.c
-          @@ -1282,8 +1282,9 @@
-           {
-                  int ret;
-           
-          -       ret = __group_send_sig_info(sig, info, p, pid_type);
-                  struct millet_data data;
-          +
-          +       ret = __group_send_sig_info(sig, info, p, pid_type);
-           
-                  if (unlikely(ret && sig_is_ok(sig))) {
-                          data.sig = sig;
-          EOF
-
-          echo "All hotfixes applied successfully."
           echo "Patches applied successfully."
 
       - name: Patch Kernel of Re:Kernel
