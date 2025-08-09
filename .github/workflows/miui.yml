@@ -639,6 +639,7 @@ jobs:
             make -j$(nproc --all) O=out ARCH=arm64 ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }}
           else
             make CC="ccache clang" O=out ARCH=arm64 ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.DEFCONFIG_NAME }} vendor/xiaomi/sm8250-common.config
+            
           scripts/kconfig/merge_config.sh -m -O out out/.config vendor/xiaomi/sm8250-common.config
           if [[ "${{ env.CONFIG }}" == "true" ]]; then
           scripts/config --file out/.config \
@@ -772,6 +773,7 @@ jobs:
                   -e BOOTUP_RECLAIM \
                   -e MI_RECLAIM \
                   -e RTMM
+              fi
           fi
           
             # make -j$(nproc --all) CC="ccache clang" O=out ARCH=arm64 ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }}
