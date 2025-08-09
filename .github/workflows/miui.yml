@@ -287,6 +287,7 @@ jobs:
       - name: set miui config
         run : |
           cd $GITHUB_WORKSPACE/device_kernel
+          make $MAKE_ARGS -j$(nproc --all) ${{ env.DEFCONFIG_NAME }}
           if [[ "${{ env.CONFIG }}" == "true" ]]; then
           scripts/config --file out/.config \
             -e KALLSYMS \
