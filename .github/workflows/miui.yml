@@ -640,7 +640,7 @@ jobs:
             make -j$(nproc --all) O=out ARCH=arm64 ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }}
           else
             make CC="ccache clang" O=out ARCH=arm64 ${{ env.CUSTOM_CMDS }} ${{ env.EXTRA_CMDS }} ${{ env.GCC_64 }} ${{ env.GCC_32 }} ${{ env.DEFCONFIG_NAME }} vendor/xiaomi/sm8250-common.config
-            
+            make O=out olddefconfig
           scripts/kconfig/merge_config.sh -m -O out out/.config
           if [[ "${{ env.CONFIG }}" == "true" ]]; then
           scripts/config --file out/.config \
@@ -704,7 +704,6 @@ jobs:
             -e NET_SCH_PLUG \
             -e NET_SCH_ETS \
             -e NET_SCH_FIFO \
-            -e NET_SCH_DEFAULT \
             -e DEFAULT_FQ \
             -e MQ_IOSCHED_DEADLINE \
             -e MQ_IOSCHED_KYBER \
