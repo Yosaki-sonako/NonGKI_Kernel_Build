@@ -69,7 +69,7 @@ jobs:
         run: |
           echo "KERNEL_TREE=${{ github.event.inputs.KERNEL_TREE_1 }}" >> $GITHUB_ENV
           case "${{ matrix.kernel }}" in
-            1) echo "KERNEL_TREE_BRANCH=next-main" >> $GITHUB_ENV ;;
+            1) echo "KERNEL_TREE_BRANCH=no-ksu" >> $GITHUB_ENV ;;
             2) echo "KERNEL_TREE_BRANCH=freesia" >> $GITHUB_ENV ;;
           esac
          
@@ -90,11 +90,6 @@ jobs:
           if [[ "${{ github.event.inputs.CUSTOM_SED }}" != "-Yosaki-Sonako" ]]; then
             sed -i -e 's/CONFIG_LOCALVERSION="-Yosaki-Sonako"/CONFIG_LOCALVERSION="${{ github.event.inputs.CUSTOM_SED }}"/' arch/arm64/configs/vendor/alioth_defconfig
           fi
-
-      - name: Apply Patches
-        run: |
-          cd kernel_tree
-          bash nextpatch.sh
 
       - name: Change different battery type
         if: matrix.kernel == 1 || matrix.kernel == 2
