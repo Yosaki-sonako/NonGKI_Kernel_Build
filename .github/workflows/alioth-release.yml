@@ -256,7 +256,6 @@ jobs:
           if [ "$KSU_VERSION" == "sukisu" ]; then KSU_ZIP_STR="SukiSU"; fi
           if [ "$KSU_VERSION" == "sukisu-ultra" ]; then KSU_ZIP_STR="SukiSU-Ultra"
           COMPILED_DATE=$(date +%Y%m%d)
-          ADD_FUNC_STR=""
 
           ZIP_NAME="[kernel-${KSU_ZIP_STR}][-${{ github.event.inputs.CODENAME }}-${COMPILED_DATE}]"
           echo "Final ZIP name: ${ZIP_NAME}"
