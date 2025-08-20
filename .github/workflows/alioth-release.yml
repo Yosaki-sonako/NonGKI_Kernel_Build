@@ -27,6 +27,17 @@ on:
         description: 'default=neutron, write aosp for aosp 20 clang'
         default: 'neutron'
         required: false
+      kernelsu_version:
+        description: 'KernelSU Version'
+        required: true
+        type: choice
+        default: 'sukisu-ultra'
+        options:
+          - 'sukisu-ultra'
+          - 'ksu'
+          - 'rksu'
+          - 'sukisu'
+          - 'noksu'
 
 jobs:
   build:
@@ -80,20 +91,26 @@ jobs:
             sed -i -e 's/CONFIG_LOCALVERSION="-Yosaki-Sonako"/CONFIG_LOCALVERSION="${{ github.event.inputs.CUSTOM_SED }}"/' arch/arm64/configs/vendor/alioth_defconfig
           fi
 
+      - name: Apply Patches (Skip for Kernel 1)
+        if: matrix.kernel != 1
+        run: |
+          cd kernel_tree
+          bash nextpatch.sh
+
       - name: Change different battery type
-        if: matrix.kernel == 2
+        if: matrix.kernel == 1 || matrix.kernel == 2
         run: |
           cd kernel_tree
           sed -i -e '/qcom,j3s-batt-profile;/d' arch/arm64/boot/dts/vendor/qcom/alioth-sm8250.dtsi
 
       - name: Revert to stock gpufreq
-        if: matrix.kernel == 2
+        if: matrix.kernel == 1 || matrix.kernel == 2
         run: |
           cd kernel_tree
           patch -p1 -f < "0001-stock-gpu-freq.patch"
 
       - name: Apply Modifications (if modified build)
-        if: matrix.kernel == 1
+        if: matrix.kernel == 2
         run: |
           cd kernel_tree
           sed -i -e '/<2553600>,/c\<2553600>;' arch/arm64/boot/dts/vendor/qcom/kona.dtsi
@@ -104,19 +121,51 @@ jobs:
           sed -i -e 's/qcom,mdss-pan-physical-width-dimension = <70>;/qcom,mdss-pan-physical-width-dimension = <695>;/' arch/arm64/boot/dts/vendor/qcom/dsi-panel-k11a-38-08-0a-dsc-cmd.dtsi
           sed -i -e 's/qcom,mdss-pan-physical-height-dimension = <155>;/qcom,mdss-pan-physical-height-dimension = <1546>;/' arch/arm64/boot/dts/vendor/qcom/dsi-panel-k11a-38-08-0a-dsc-cmd.dtsi
 
-      - name: 3.Add Rksu
+      - name: Add KernelSU based on selection
         run: |
-          cd $GITHUB_WORKSPACE/kernel_workspace/android_kernel
-          curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s main
+          cd kernel_tree
+          KSU_VERSION="${{ github.event.inputs.kernelsu_version }}"
+          ADDITIONAL="${{ github.event.inputs.additional_function }}"
+          SuSFS_ENABLE=0
+          if [[ "$ADDITIONAL" == "susfs" || "$ADDITIONAL" == "susfs-kpm" ]]; then
+            SuSFS_ENABLE=1
+          fi
 
-      - name: 4.Setup rksu
-        run: |
-          ls
-          echo "进入源码目录"
-          cd $GITHUB_WORKSPACE/kernel_workspace/android_kernel
-          cp $GITHUB_WORKSPACE/kernel_workspace/patches/Patches/* .
-          patch -p1 < non-kprobes.patch
-          
+          if [ "$KSU_VERSION" == "ksu" ]; then
+            echo "KSU is enabled"
+            if [ "$SuSFS_ENABLE" -eq 1 ]; then
+              echo "::error::Official KernelSU does not support SuSFS. Build failed."
+              exit 1
+            fi
+            curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s v0.9.5
+          elif [ "$KSU_VERSION" == "rksu" ]; then
+            if [ "$SuSFS_ENABLE" -eq 1 ]; then
+              echo "RKSU && SuSFS is enabled"
+              curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s susfs-v1.5.5
+            else
+              echo "RKSU is enabled"
+              curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s main
+            fi
+          elif [ "$KSU_VERSION" == "sukisu" ]; then
+            if [ "$SuSFS_ENABLE" -eq 1 ]; then
+              echo "SukiSU && SuSFS is enabled"
+              curl -LSs "https://raw.githubusercontent.com/ShirkNeko/KernelSU/main/kernel/setup.sh" | bash -s susfs-dev
+            else
+              echo "SukiSU is enabled"
+              curl -LSs "https://raw.githubusercontent.com/ShirkNeko/KernelSU/main/kernel/setup.sh" | bash -s dev
+            fi
+          elif [ "$KSU_VERSION" == "sukisu-ultra" ]; then
+            if [ "$SuSFS_ENABLE" -eq 1 ]; then
+              echo "SukiSU-Ultra && SuSFS is enabled"
+              curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-main
+            else
+              echo "SukiSU-Ultra is enabled"
+              curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s nongki
+            fi
+          else
+            echo "KernelSU integration is skipped."
+          fi
+      
       - name: Build Kernel
         run: |
           export PATH="$(pwd)/clang/bin:$PATH"
@@ -166,15 +215,6 @@ jobs:
           path: |
             alioth-j3s-dtbo-miui.img
             alioth-effcpu-dtb
-
-      - name: Upload Kernel Artifacts
-        uses: actions/upload-artifact@v4
-        if: matrix.kernel == 1
-        with:
-          name: kernel-part-${{ matrix.kernel }}-addon
-          path: |
-            alioth-stock-dtbo-miui.img
-            alioth-effcpu-gpustk-dtb
             
   package_anykernel:
     needs: build
@@ -213,14 +253,27 @@ jobs:
 
       - name: Define ZIP Name
         run: |
+          KSU_VERSION="${{ github.event.inputs.kernelsu_version }}"
+          ADDITIONAL="${{ github.event.inputs.additional_function }}"
           COMPILED_DATE=$(date +%Y%m%d)
+          
+          KSU_ZIP_STR="NoKSU"
+          if [ "$KSU_VERSION" == "ksu" ]; then KSU_ZIP_STR="KSU"; fi
+          if [ "$KSU_VERSION" == "rksu" ]; then KSU_ZIP_STR="RKSU"; fi
+          if [ "$KSU_VERSION" == "sukisu" ]; then KSU_ZIP_STR="SukiSU"; fi
+          if [ "$KSU_VERSION" == "sukisu-ultra" ]; then KSU_ZIP_STR="SukiSU-Ultra"
+          COMPILED_DATE=$(date +%Y%m%d)
+          ADD_FUNC_STR=""
           if [[ "${{ matrix.kernel }}" == "1" ]]; then
-            echo "ZIP_NAME=[FD-][next-${{ github.event.inputs.CODENAME }}-$COMPILED_DATE]" >> $GITHUB_ENV
-          elif [[ "${{ matrix.kernel }}" == "2" ]]; then
-            echo "ZIP_NAME=[FD-][susfs-${{ github.event.inputs.CODENAME }}-$COMPILED_DATE]" >> $GITHUB_ENV
+            KERNEL_TYPE="next"
           else
-            echo "ZIP_NAME=[FD-][noksu-${{ github.event.inputs.CODENAME }}-$COMPILED_DATE]" >> $GITHUB_ENV
+            KERNEL_TYPE="freesia"
           fi
+
+          ZIP_NAME="[kernel-${KSU_ZIP_STR}${ADD_FUNC_STR}][${KERNEL_TYPE}-${{ github.event.inputs.CODENAME }}-${COMPILED_DATE}]"
+          echo "Final ZIP name: ${ZIP_NAME}"
+          echo "ZIP_NAME=${ZIP_NAME}" >> $GITHUB_ENV
+
       
       - name: Upload Flashable Kernel Zip
         uses: actions/upload-artifact@v4
