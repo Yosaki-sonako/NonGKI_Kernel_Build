@@ -91,8 +91,7 @@ jobs:
             sed -i -e 's/CONFIG_LOCALVERSION="-Yosaki-Sonako"/CONFIG_LOCALVERSION="${{ github.event.inputs.CUSTOM_SED }}"/' arch/arm64/configs/vendor/alioth_defconfig
           fi
 
-      - name: Apply Patches (Skip for Kernel 1)
-        if: matrix.kernel != 1
+      - name: Apply Patches
         run: |
           cd kernel_tree
           bash nextpatch.sh
