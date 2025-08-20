@@ -248,14 +248,25 @@ jobs:
       - name: Define ZIP Name
         run: |
           KSU_VERSION="${{ github.event.inputs.kernelsu_version }}"
-          COMPILED_DATE=$(date +%Y%m%d)
           
-          KSU_ZIP_STR="NoKSU"
-          if [ "$KSU_VERSION" == "ksu" ]; then KSU_ZIP_STR="KSU"; fi
-          if [ "$KSU_VERSION" == "rksu" ]; then KSU_ZIP_STR="RKSU"; fi
-          if [ "$KSU_VERSION" == "sukisu" ]; then KSU_ZIP_STR="SukiSU"; fi
-          if [ "$KSU_VERSION" == "sukisu-ultra" ]; then KSU_ZIP_STR="SukiSU-Ultra"
+          KSU_VERSION="rksu"
           COMPILED_DATE=$(date +%Y%m%d)
+          KSU_ZIP_STR="NoKSU"
+
+          case "$KSU_VERSION" in
+          "ksu")
+          KSU_ZIP_STR="KSU"
+          ;;
+          "rksu")
+          KSU_ZIP_STR="RKSU"
+          ;;
+          "sukisu")
+          KSU_ZIP_STR="SukiSU"
+          ;;
+          "sukisu-ultra")
+          KSU_ZIP_STR="SukiSU-Ultra"
+          ;;
+          esac
 
           ZIP_NAME="[kernel-${KSU_ZIP_STR}][-${{ github.event.inputs.CODENAME }}-${COMPILED_DATE}]"
           echo "Final ZIP name: ${ZIP_NAME}"
