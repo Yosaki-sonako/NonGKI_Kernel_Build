@@ -248,7 +248,6 @@ jobs:
       - name: Define ZIP Name
         run: |
           KSU_VERSION="${{ github.event.inputs.kernelsu_version }}"
-          ADDITIONAL="${{ github.event.inputs.additional_function }}"
           COMPILED_DATE=$(date +%Y%m%d)
           
           KSU_ZIP_STR="NoKSU"
@@ -258,13 +257,8 @@ jobs:
           if [ "$KSU_VERSION" == "sukisu-ultra" ]; then KSU_ZIP_STR="SukiSU-Ultra"
           COMPILED_DATE=$(date +%Y%m%d)
           ADD_FUNC_STR=""
-          if [[ "${{ matrix.kernel }}" == "1" ]]; then
-            KERNEL_TYPE="next"
-          else
-            KERNEL_TYPE="freesia"
-          fi
 
-          ZIP_NAME="[kernel-${KSU_ZIP_STR}${ADD_FUNC_STR}][${KERNEL_TYPE}-${{ github.event.inputs.CODENAME }}-${COMPILED_DATE}]"
+          ZIP_NAME="[kernel-${KSU_ZIP_STR}][-${{ github.event.inputs.CODENAME }}-${COMPILED_DATE}]"
           echo "Final ZIP name: ${ZIP_NAME}"
           echo "ZIP_NAME=${ZIP_NAME}" >> $GITHUB_ENV
 
