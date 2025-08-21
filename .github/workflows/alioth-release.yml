@@ -235,18 +235,6 @@ jobs:
         with:
           name: kernel-part-2-addon
           path: kernel-part-2-addon
-
-      - name: Download Kernel Build Addon 3
-        uses: actions/download-artifact@v4
-        with:
-          name: kernel-part-3-addon
-          path: kernel-part-3-addon
-
-      - name: Download Kernel Build Addon 4
-        uses: actions/download-artifact@v4
-        with:
-          name: kernel-part-4-addon
-          path: kernel-part-4-addon
           
       - name: Clone AnyKernel3
         run: git clone --recursive --depth=1 ${{ github.event.inputs.ANYKERNEL_URL }} -b main AnyKernel3-${{ matrix.kernel }}
@@ -256,8 +244,6 @@ jobs:
           mv kernel-${{ matrix.kernel }}-base/* AnyKernel3-${{ matrix.kernel }}/
           mv kernel-part-1-addon/* AnyKernel3-${{ matrix.kernel }}/
           mv kernel-part-2-addon/* AnyKernel3-${{ matrix.kernel }}/
-          mv kernel-part-3-addon/* AnyKernel3-${{ matrix.kernel }}/
-          mv kernel-part-4-addon/* AnyKernel3-${{ matrix.kernel }}/
 
       - name: Define ZIP Name
         run: |
