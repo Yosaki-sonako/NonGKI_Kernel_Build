@@ -268,7 +268,7 @@ jobs:
           ;;
           esac
 
-          ZIP_NAME="[kernel-${KSU_ZIP_STR}][-${{ github.event.inputs.CODENAME }}-${COMPILED_DATE}]"
+          ZIP_NAME="[FD-][${KSU_ZIP_STR}-${{ github.event.inputs.CODENAME }}-${COMPILED_DATE}]"
           echo "Final ZIP name: ${ZIP_NAME}"
           echo "ZIP_NAME=${ZIP_NAME}" >> $GITHUB_ENV
 
