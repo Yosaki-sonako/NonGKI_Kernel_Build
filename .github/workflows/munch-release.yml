@@ -28,6 +28,17 @@ on:
           - neutron
           - aosp
         default: neutron
+      kernelsu_version:
+        description: 'KernelSU Version'
+        required: true
+        type: choice
+        default: 'rksu'
+        options:
+          - 'sukisu-ultra'
+          - 'ksu'
+          - 'rksu'
+          - 'sukisu'
+          - 'noksu'
       LTO_CHOICE:
         required: true
         type: choice
@@ -101,12 +112,6 @@ jobs:
           \t\trc = get_cycle_count(chip->counter, &pval->intval);\
           \t#endif\
           \t\tbreak;' drivers/power/supply/qcom/qpnp-fg-gen4.c
-      
-      - name: Apply Patches (Skip for Kernel 3)
-        if: matrix.kernel != 3
-        run: |
-          cd kernel_tree
-          bash nextpatch.sh
 
       - name: Revert to stock gpufreq
         if: matrix.kernel == 3 || matrix.kernel == 4
@@ -132,15 +137,60 @@ jobs:
           sed -i -e '/<3187200>;/c\//<3187200>;' arch/arm64/boot/dts/vendor/qcom/kona.dtsi
           sed -i -e 's/qcom,mdss-pan-physical-width-dimension = <70>;/qcom,mdss-pan-physical-width-dimension = <695>;/' arch/arm64/boot/dts/vendor/qcom/dsi-panel-l11r-38-08-0a-dsc-cmd.dtsi
           sed -i -e 's/qcom,mdss-pan-physical-height-dimension = <155>;/qcom,mdss-pan-physical-height-dimension = <1546>;/' arch/arm64/boot/dts/vendor/qcom/dsi-panel-l11r-38-08-0a-dsc-cmd.dtsi
-      
+
+      - name: Add KernelSU based on selection
+        run: |
+          cd kernel_tree
+          KSU_VERSION="${{ github.event.inputs.kernelsu_version }}"
+          ADDITIONAL="${{ github.event.inputs.additional_function }}"
+          SuSFS_ENABLE=0
+          if [[ "$ADDITIONAL" == "susfs" || "$ADDITIONAL" == "susfs-kpm" ]]; then
+            SuSFS_ENABLE=1
+          fi
+
+          if [ "$KSU_VERSION" == "ksu" ]; then
+            echo "KSU is enabled"
+            if [ "$SuSFS_ENABLE" -eq 1 ]; then
+              echo "::error::Official KernelSU does not support SuSFS. Build failed."
+              exit 1
+            fi
+            curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s v0.9.5
+          elif [ "$KSU_VERSION" == "rksu" ]; then
+            if [ "$SuSFS_ENABLE" -eq 1 ]; then
+              echo "RKSU && SuSFS is enabled"
+              curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s susfs-v1.5.5
+            else
+              echo "RKSU is enabled"
+              curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s main
+            fi
+          elif [ "$KSU_VERSION" == "sukisu" ]; then
+            if [ "$SuSFS_ENABLE" -eq 1 ]; then
+              echo "SukiSU && SuSFS is enabled"
+              curl -LSs "https://raw.githubusercontent.com/ShirkNeko/KernelSU/main/kernel/setup.sh" | bash -s susfs-dev
+            else
+              echo "SukiSU is enabled"
+              curl -LSs "https://raw.githubusercontent.com/ShirkNeko/KernelSU/main/kernel/setup.sh" | bash -s dev
+            fi
+          elif [ "$KSU_VERSION" == "sukisu-ultra" ]; then
+            if [ "$SuSFS_ENABLE" -eq 1 ]; then
+              echo "SukiSU-Ultra && SuSFS is enabled"
+              curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-main
+            else
+              echo "SukiSU-Ultra is enabled"
+              curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s nongki
+            fi
+          else
+            echo "KernelSU integration is skipped."
+          fi
+          
       - name: Build Kernel
         run: |
           export PATH="$(pwd)/clang/bin:$PATH"
           export ARCH=arm64
           export SUBARCH=ARM64
-          export KBUILD_BUILD_USER="renoroi"
-          export KBUILD_BUILD_HOST="dreamstate"
-          export KBUILD_BUILD_TIMESTAMP="$(TZ=UTC-7 date)"
+          export KBUILD_BUILD_USER="sonako"
+          export KBUILD_BUILD_HOST="yski"
+          export KBUILD_BUILD_TIMESTAMP="$(TZ=UTC-8 date)"
           cd kernel_tree
           make O=out vendor/munch_defconfig
           make O=out CC=clang -j$(nproc --all) CROSS_COMPILE=aarch64-linux-gnu- LLVM=1 LLVM_IAS=1
