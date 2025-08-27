@@ -88,7 +88,7 @@ jobs:
         run: |
           cd kernel_tree
           if [[ "${{ github.event.inputs.CUSTOM_SED }}" != "-Yosaki-Sonako" ]]; then
-            sed -i -e 's/CONFIG_LOCALVERSION="-Yosaki-Sonako"/CONFIG_LOCALVERSION="${{ github.event.inputs.CUSTOM_SED }}"/' arch/arm64/configs/vendor/alioth_defconfig
+            sed -i -e 's/CONFIG_LOCALVERSION="-FakeDreamer"/CONFIG_LOCALVERSION="${{ github.event.inputs.CUSTOM_SED }}"/' arch/arm64/configs/vendor/alioth_defconfig
           fi
 
       - name: Change different battery type
