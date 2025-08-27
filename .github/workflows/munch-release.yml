@@ -18,7 +18,7 @@ on:
         required: false
       CUSTOM_SED:
         description: 'Custom Kernel Version'
-        default: '-FakeDreamer'
+        default: '-xuebi-stk7-fd'
         required: false
       COMPILER:
         description: 'Choose compiler'
