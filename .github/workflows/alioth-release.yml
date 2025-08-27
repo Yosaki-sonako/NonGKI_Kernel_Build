@@ -142,7 +142,7 @@ jobs:
               echo "::error::Official KernelSU does not support SuSFS. Build failed."
               exit 1
             fi
-            curl -LSs "https://raw.githubusercontent.com/Prslc/KernelSU/main/kernel/setup.sh" | bash -s main
+            curl -LSs "https://raw.githubusercontent.com/Prslc/KernelSU/main/kernel/setup.sh" | bash -s nongki
           elif [ "$KSU_VERSION" == "rksu" ]; then
             if [ "$SuSFS_ENABLE" -eq 1 ]; then
               echo "RKSU && SuSFS is enabled"
