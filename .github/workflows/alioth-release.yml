@@ -127,6 +127,7 @@ jobs:
           sed -i -e '/CONFIG_LTO_CLANG_FULL=y/c\# CONFIG_LTO_CLANG_FULL is not set;' arch/arm64/configs/vendor/alioth_defconfig
 
       - name: Add KernelSU based on selection
+        if: matrix.kernel != 3
         run: |
           cd kernel_tree
           KSU_VERSION="${{ github.event.inputs.kernelsu_version }}"
