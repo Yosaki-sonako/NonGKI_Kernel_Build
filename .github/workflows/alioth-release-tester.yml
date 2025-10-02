@@ -1,0 +1,290 @@
+name: FD-release-alioth-build-tester
+
+on:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      KERNEL_TREE_1:
+        description: 'Kernel Tree'
+        default: 'https://github.com/re-noroi/kernel_sm8250'
+        required: true
+      KERNEL_TREE_BRANCH_1:
+        description: 'Kernel Tree Branch 1'
+        default: 'freesia'
+        required: true
+      CODENAME:
+        description: 'Phone Codename'
+        default: 'alioth'
+        required: true
+      ANYKERNEL_URL:
+        description: 'AnyKernel Url (leave blank if you dont want AnyKernel)'
+        default: 'https://github.com/re-noroi/anykernel3-test'
+        required: false
+      CUSTOM_SED:
+        description: 'Custom Kernel Version'
+        default: '-Yski-Sonako'
+        required: false
+      COMPILER:
+        description: 'Choose compiler'
+        required: true
+        type: choice
+        options:
+          - neutron
+          - aosp
+          - aosp-21
+        default: neutron
+      kernelsu_version:
+        description: 'KernelSU Version'
+        required: true
+        type: choice
+        default: 'rksu'
+        options:
+          - 'sukisu-ultra'
+          - 'ksu'
+          - 'rksu'
+          - 'sukisu'
+          - 'noksu'
+      LTO_CHOICE:
+        required: true
+        type: choice
+        options:
+          - full_lto
+          - thin_lto
+        default: full_lto
+      PATCH_SKIP:
+        description: 'select yes if for stable branch'
+        required: true
+        type: choice
+        options:
+          - 'yes'
+          - 'no'
+        default: 'no'
+jobs:
+  build:
+    strategy:
+      matrix:
+        kernel: [1, 2, 3, 4]
+    runs-on: ubuntu-latest
+    env:
+      UPLOAD_TO_RELEASE: false
+
+    steps:
+      - name: Install Dependencies
+        run: sudo apt install flex libncurses6
+
+      - name: Download & Extract Clang
+        run: |
+          if [[ "${{ github.event.inputs.COMPILER }}" == "aosp" ]]; then
+            wget https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-r547379.tar.gz -O clang.tar.gz
+            mkdir clang
+            tar -xf clang.tar.gz -C clang
+          elif [[ "${{ github.event.inputs.COMPILER }}" == "aosp-21" ]]; then
+            wget https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/603a89415bbb04dff8bc577b95534479ec13fdc5/clang-r574158.tar.gz -O clang.tar.gz
+            mkdir clang
+            tar -xf clang.tar.gz -C clang
+          else
+            wget https://github.com/Neutron-Toolchains/clang-build-catalogue/releases/download/10032024/neutron-clang-10032024.tar.zst -O clang.tar.zst
+            mkdir clang
+            unzstd -d clang.tar.zst
+            tar -xf clang.tar -C clang
+          fi
+          
+      - name: Set Kernel Environment Variables
+        run: |
+          echo "KERNEL_TREE_BRANCH=${{ github.event.inputs.KERNEL_TREE_BRANCH_1 }}" >> $GITHUB_ENV
+         
+      - name: Checkout Kernel via PAT
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          if [[ "${{ github.event.inputs.KERNEL_TREE_1 }}" == "private" ]]; then
+            REPO_URL="https://x-access-token:${GH_PAT}@github.com/re-noroi/FD-private.git"
+          else
+            REPO_URL="${{ github.event.inputs.KERNEL_TREE_1 }}"
+          fi
+          git clone --depth=1 --branch "${{ env.KERNEL_TREE_BRANCH }}" "${REPO_URL}" kernel_tree
+
+      - name: Kernel Version
+        run: |
+          cd kernel_tree
+          if [[ "${{ github.event.inputs.CUSTOM_SED }}" != "-FakeDreamer" ]]; then
+            sed -i -e 's/CONFIG_LOCALVERSION="-FakeDreamer"/CONFIG_LOCALVERSION="${{ github.event.inputs.CUSTOM_SED }}"/' arch/arm64/configs/vendor/alioth_defconfig
+          fi
+      
+      - name: Apply Patches
+        if: ${{ github.event.inputs.PATCH_SKIP == 'no' }}
+        run: |
+          cd kernel_tree
+          bash nextpatch.sh
+
+
+      - name: Change different battery type
+        if: matrix.kernel == 3 || matrix.kernel == 4
+        run: |
+          cd kernel_tree
+          sed -i -e '/qcom,j3s-batt-profile;/d' arch/arm64/boot/dts/vendor/qcom/alioth-sm8250.dtsi
+
+      - name: Revert to stock gpufreq
+        if: matrix.kernel == 3 || matrix.kernel == 4
+        run: |
+          cd kernel_tree
+          patch -p1 -f < "0001-stock-gpu-freq.patch"
+
+      - name: Change LTO Type
+        if: ${{ github.event.inputs.LTO_CHOICE == 'thin_lto' }}
+        run: |
+          cd kernel_tree
+          sed -i -e '/# CONFIG_LTO_CLANG_THIN is not set/c\CONFIG_LTO_CLANG_THIN=y;' arch/arm64/configs/vendor/alioth_defconfig
+          sed -i -e '/CONFIG_LTO_CLANG_FULL=y/c\# CONFIG_LTO_CLANG_FULL is not set;' arch/arm64/configs/vendor/alioth_defconfig
+
+      - name: Add KernelSU based on selection
+        if: matrix.kernel != 3
+        run: |
+          cd kernel_tree
+          KSU_VERSION="${{ github.event.inputs.kernelsu_version }}"
+          ADDITIONAL="${{ github.event.inputs.additional_function }}"
+          SuSFS_ENABLE=0
+          if [[ "$ADDITIONAL" == "susfs" || "$ADDITIONAL" == "susfs-kpm" ]]; then
+            SuSFS_ENABLE=1
+          fi
+
+          if [ "$KSU_VERSION" == "ksu" ]; then
+            echo "KSU is enabled"
+            if [ "$SuSFS_ENABLE" -eq 1 ]; then
+              echo "::error::Official KernelSU does not support SuSFS. Build failed."
+              exit 1
+            fi
+            curl -LSs "https://raw.githubusercontent.com/Prslc/KernelSU/main/kernel/setup.sh" | bash -s nongki
+          elif [ "$KSU_VERSION" == "rksu" ]; then
+            if [ "$SuSFS_ENABLE" -eq 1 ]; then
+              echo "RKSU && SuSFS is enabled"
+              curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s susfs-v1.5.5
+            else
+              echo "RKSU is enabled"
+              curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s main
+            fi
+          elif [ "$KSU_VERSION" == "sukisu" ]; then
+            if [ "$SuSFS_ENABLE" -eq 1 ]; then
+              echo "SukiSU && SuSFS is enabled"
+              curl -LSs "https://raw.githubusercontent.com/ShirkNeko/KernelSU/main/kernel/setup.sh" | bash -s susfs-dev
+            else
+              echo "SukiSU is enabled"
+              curl -LSs "https://raw.githubusercontent.com/ShirkNeko/KernelSU/main/kernel/setup.sh" | bash -s dev
+            fi
+          elif [ "$KSU_VERSION" == "sukisu-ultra" ]; then
+            if [ "$SuSFS_ENABLE" -eq 1 ]; then
+              echo "SukiSU-Ultra && SuSFS is enabled"
+              curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-main
+            else
+              echo "SukiSU-Ultra is enabled"
+              curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s nongki
+            fi
+          else
+            echo "KernelSU integration is skipped."
+          fi
+          
+      - name: Apply Modifications (if modified build)
+        if: matrix.kernel == 2 || matrix.kernel == 4
+        run: |
+          cd kernel_tree
+          sed -i -e '/<2553600>,/c\<2553600>;' arch/arm64/boot/dts/vendor/qcom/kona.dtsi
+          sed -i -e '/<2649600>,/c\//<2649600>,' arch/arm64/boot/dts/vendor/qcom/kona.dtsi
+          sed -i -e '/<2745600>,/c\//<2745600>,' arch/arm64/boot/dts/vendor/qcom/kona.dtsi
+          sed -i -e '/<2841600>,/c\//<2841600>,' arch/arm64/boot/dts/vendor/qcom/kona.dtsi
+          sed -i -e '/<3187200>;/c\//<3187200>;' arch/arm64/boot/dts/vendor/qcom/kona.dtsi
+          sed -i -e 's/qcom,mdss-pan-physical-width-dimension = <70>;/qcom,mdss-pan-physical-width-dimension = <695>;/' arch/arm64/boot/dts/vendor/qcom/dsi-panel-k11a-38-08-0a-dsc-cmd.dtsi
+          sed -i -e 's/qcom,mdss-pan-physical-height-dimension = <155>;/qcom,mdss-pan-physical-height-dimension = <1546>;/' arch/arm64/boot/dts/vendor/qcom/dsi-panel-k11a-38-08-0a-dsc-cmd.dtsi
+      
+      - name: Build Kernel
+        run: |
+          export PATH="$(pwd)/clang/bin:$PATH"
+          export ARCH=arm64
+          export SUBARCH=ARM64
+          export KBUILD_BUILD_USER="sonako"
+          export KBUILD_BUILD_HOST="yosaki"
+          export KBUILD_BUILD_TIMESTAMP="$(TZ=UTC-8 date)"
+          cd kernel_tree
+          make O=out vendor/alioth_defconfig
+          make O=out CC=clang -j$(nproc --all) CROSS_COMPILE=aarch64-linux-gnu- LLVM=1 LLVM_IAS=1
+          if [[ "${{ matrix.kernel }}" == 1 ]]; then
+            cp out/arch/arm64/boot/Image.gz ../Image.gz
+            mv out/arch/arm64/boot/dtbo.img ../alioth-j3s-dtbo-aosp.img
+            mv out/arch/arm64/boot/dtb.img ../alioth-normal-dtb
+          elif [[ "${{ matrix.kernel }}" == 2 ]]; then
+            mv out/arch/arm64/boot/dtbo.img ../alioth-j3s-dtbo-miui.img
+            mv out/arch/arm64/boot/dtb.img ../alioth-effcpu-dtb
+          elif [[ "${{ matrix.kernel }}" == 3 ]]; then
+            mv out/arch/arm64/boot/dtb.img ../alioth-normal-gpustk-dtb
+            mv out/arch/arm64/boot/dtbo.img ../alioth-stock-dtbo-aosp.img
+          else
+            mv out/arch/arm64/boot/dtb.img ../alioth-effcpu-gpustk-dtb
+            mv out/arch/arm64/boot/dtbo.img ../alioth-stock-dtbo-miui.img
+          fi
+
+      - name: Upload Kernel Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel-1-${{ matrix.kernel }}
+          path: |
+            *.img
+            *-dtb
+            Image.gz
+
+  package_anykernel:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Kernel Build Original
+        uses: actions/download-artifact@v4
+        with:
+          name: kernel-1-1
+          path: kernel-1-1
+
+      - name: Download Kernel Build Modified
+        uses: actions/download-artifact@v4
+        with:
+          name: kernel-1-2
+          path: kernel-1-2
+
+      - name: Download Kernel Build Stock + Stock GPU
+        uses: actions/download-artifact@v4
+        with:
+          name: kernel-1-3
+          path: kernel-1-3
+
+      - name: Download Kernel Build Effcpu + Stock GPU
+        uses: actions/download-artifact@v4
+        with:
+          name: kernel-1-4
+          path: kernel-1-4
+
+      - name: Clone AnyKernel3
+        run: git clone --recursive --depth=1 ${{ github.event.inputs.ANYKERNEL_URL }} -b main AnyKernel3-1
+
+      - name: Move Kernel Files to AnyKernel3
+        run: |
+          mv kernel-1-1/* AnyKernel3-1/
+          mv kernel-1-2/* AnyKernel3-1/
+          mv kernel-1-3/* AnyKernel3-1/
+          mv kernel-1-4/* AnyKernel3-1/
+
+      - name: Define ZIP Name
+        run: |
+          COMPILED_DATE=$(date +%Y%m%d)
+          if [[ "${{ matrix.kernel }}" == "1" ]]; then
+            echo "ZIP_NAME=[FD-][ksu-${{ github.event.inputs.CODENAME }}-$COMPILED_DATE]" >> $GITHUB_ENV
+          elif [[ "${{ matrix.kernel }}" == "2" ]]; then
+            echo "ZIP_NAME=[FD-][susfs-${{ github.event.inputs.CODENAME }}-$COMPILED_DATE]" >> $GITHUB_ENV
+          else
+            echo "ZIP_NAME=[FD-][noksu-${{ github.event.inputs.CODENAME }}-$COMPILED_DATE]" >> $GITHUB_ENV
+          fi
+      
+      - name: Upload Flashable Kernel Zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ZIP_NAME }}
+          path: |
+            AnyKernel3-1/
+            !AnyKernel3-1/.git
+            !AnyKernel3-1/.github
+      
