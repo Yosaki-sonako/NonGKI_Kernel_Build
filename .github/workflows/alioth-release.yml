@@ -136,8 +136,6 @@ jobs:
             cp /tmp/Patches/Rekernel/4.19_rekernel_full_alioth-fd.patch ./
             patch -p1 < 4.19_rekernel_full_alioth-fd.patch || true
             echo "Re:Kernel Patched."
-          else
-            echo "Your kernel not supported it."
           fi
 
       - name: Change different battery type
