@@ -112,7 +112,7 @@ jobs:
           fi
       
       - name: Apply Patches
-        if: ${{ github.event.inputs.PATCH_SKIP == 'no' }} || matrix.kernel == 3
+        if: matrix.kernel == 3
         run: |
           cd kernel_tree
           bash nextpatch.sh
