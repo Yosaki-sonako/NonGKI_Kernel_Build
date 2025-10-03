@@ -142,7 +142,7 @@ jobs:
           sed -i -e '/CONFIG_LTO_CLANG_FULL=y/c\# CONFIG_LTO_CLANG_FULL is not set;' arch/arm64/configs/vendor/alioth_defconfig
 
 
-      - name: Set additional function variables)
+      - name: Set additional function variables
         if: matrix.kernel != 3
         run: |
           cd kernel_tree
@@ -248,6 +248,24 @@ jobs:
             mv out/arch/arm64/boot/dtbo.img ../alioth-stock-dtbo-miui.img
           fi
 
+      - name: Apply KPM Patch
+        if: env.KPM_ENABLE == 1
+        run: |
+          echo "Detected KPM enabled, applying patches..."
+          cd kernel_tree/out/arch/arm64/boot
+          
+          curl -LSs "https://raw.githubusercontent.com/ShirkNeko/SukiSU_patch/refs/heads/main/kpm/patch_linux" -o patch
+          chmod +x patch
+          ./patch
+          
+          if [ $? -eq 0 ]; then
+            rm -f Image
+            mv oImage Image
+            echo "The KPM patch was successfully applied and the image file was repaired."
+          else
+            echo "::warning::KPM patch application failed, original image file will be used."
+          fi
+          
       - name: Upload Kernel Artifacts
         uses: actions/upload-artifact@v4
         if: matrix.kernel != 4
