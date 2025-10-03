@@ -195,9 +195,32 @@ jobs:
           export KBUILD_BUILD_HOST="yosaki"
           export KBUILD_BUILD_TIMESTAMP="$(TZ=UTC-8 date)"
           cd kernel_tree
+          # If you choose to turn on kpm, kpm will be enabled in config
+          if [[ "${{ env.KPM_ENABLE }}" == "1" && "${{ matrix.kernel }}" == "1" ]]; then
+          echo "Enabling KPM required kernel configurations in vendor/alioth_defconfig using sed..."
+          
+          DEFCONFIG_FILE="vendor/alioth_defconfig"
+          sed -i \
+            -e 's/^# CONFIG_KPM is not set/CONFIG_KPM=y/' \
+            -e 's/^CONFIG_KPM=n/CONFIG_KPM=y/' \
+            "$DEFCONFIG_FILE"
+          
+          sed -i \
+            -e 's/^# CONFIG_KALLSYMS is not set/CONFIG_KALLSYMS=y/' \
+            -e 's/^CONFIG_KALLSYMS=n/CONFIG_KALLSYMS=y/' \
+            "$DEFCONFIG_FILE"
+
+          sed -i \
+            -e 's/^# CONFIG_KALLSYMS_ALL is not set/CONFIG_KALLSYMS_ALL=y/' \
+            -e 's/^CONFIG_KALLSYMS_ALL=n/CONFIG_KALLSYMS_ALL=y/' \
+            "$DEFCONFIG_FILE"
+          
+          echo "KPM kernel configurations enabled in $DEFCONFIG_FILE."
+          fi
+          
           make O=out vendor/alioth_defconfig
           make O=out CC=clang -j$(nproc --all) CROSS_COMPILE=aarch64-linux-gnu- LLVM=1 LLVM_IAS=1
-          
+          # Patching kpm
           if [[ "${{ env.KPM_ENABLE }}" == "1" && "${{ matrix.kernel }}" == "1" ]]; then
           echo "Detected KPM enabled for Kernel 1, applying patches..."
           pushd out/arch/arm64/boot
