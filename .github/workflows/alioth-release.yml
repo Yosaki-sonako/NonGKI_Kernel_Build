@@ -183,9 +183,8 @@ jobs:
           cd kernel_tree
           ADDITIONAL="${{ github.event.inputs.additional_function }}"
 
-          if [ "$ADDITIONAL" == "kpm" ]; then
           # If you choose to turn on kpm, kpm will be enabled in config
-          if [[ "${{ env.KPM_ENABLE }}" == "1" && "${{ matrix.kernel }}" == "1" ]]; then
+          if [[ "$ADDITIONAL" == "kpm" && "${{ matrix.kernel }}" == "1" ]]; then
           echo "Enabling KPM required kernel configurations in vendor/alioth_defconfig using sed..."
           
           DEFCONFIG_FILE="vendor/alioth_defconfig"
@@ -217,13 +216,12 @@ jobs:
           fi
           
           echo "KPM kernel configurations enabled in $DEFCONFIG_FILE."
-           fi
           fi
           
           make O=out vendor/alioth_defconfig
           make O=out CC=clang -j$(nproc --all) CROSS_COMPILE=aarch64-linux-gnu- LLVM=1 LLVM_IAS=1
           # Patching kpm
-          if [[ "${{ env.KPM_ENABLE }}" == "1" && "${{ matrix.kernel }}" == "1" ]]; then
+          if [[ "$ADDITIONAL" == "kpm" && "${{ matrix.kernel }}" == "1" ]]; then
           echo "Detected KPM enabled for Kernel 1, applying patches..."
           pushd out/arch/arm64/boot
         
