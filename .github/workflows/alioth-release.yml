@@ -47,8 +47,6 @@ on:
         default: 'no'
         options:
           - 'no'
-          - 'susfs-kpm'
-          - 'susfs'
           - 'kpm'
       LTO_CHOICE:
         required: true
@@ -148,14 +146,7 @@ jobs:
           cd kernel_tree
           ADDITIONAL="${{ github.event.inputs.additional_function }}"
 
-          if [ "$ADDITIONAL" == "susfs-kpm" ]; then
-            SuSFS_ENABLE=1
-            KPM_ENABLE=1
-            echo "enable SuSFS-KPM"
-          elif [ "$ADDITIONAL" == "susfs" ]; then
-            SuSFS_ENABLE=1
-            echo "enable SuSFS"
-          elif [ "$ADDITIONAL" == "kpm" ]; then
+          if [ "$ADDITIONAL" == "kpm" ]; then
             KPM_ENABLE=1
             echo "enable KPM"
           else
@@ -168,42 +159,18 @@ jobs:
           cd kernel_tree
           KSU_VERSION="${{ github.event.inputs.kernelsu_version }}"
           ADDITIONAL="${{ github.event.inputs.additional_function }}"
-          SuSFS_ENABLE=0
-          if [[ "$ADDITIONAL" == "susfs" || "$ADDITIONAL" == "susfs-kpm" ]]; then
-            SuSFS_ENABLE=1
-          fi
 
           if [ "$KSU_VERSION" == "ksu" ]; then
-            echo "KSU is enabled"
-            if [ "$SuSFS_ENABLE" -eq 1 ]; then
-              echo "::error::Official KernelSU does not support SuSFS. Build failed."
-              exit 1
-            fi
             curl -LSs "https://raw.githubusercontent.com/Prslc/KernelSU/main/kernel/setup.sh" | bash -s nongki
           elif [ "$KSU_VERSION" == "rksu" ]; then
-            if [ "$SuSFS_ENABLE" -eq 1 ]; then
-              echo "RKSU && SuSFS is enabled"
-              curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s susfs-v1.5.5
-            else
               echo "RKSU is enabled"
               curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s main
-            fi
           elif [ "$KSU_VERSION" == "sukisu" ]; then
-            if [ "$SuSFS_ENABLE" -eq 1 ]; then
-              echo "SukiSU && SuSFS is enabled"
-              curl -LSs "https://raw.githubusercontent.com/ShirkNeko/KernelSU/main/kernel/setup.sh" | bash -s susfs-dev
-            else
               echo "SukiSU is enabled"
               curl -LSs "https://raw.githubusercontent.com/ShirkNeko/KernelSU/main/kernel/setup.sh" | bash -s dev
-            fi
           elif [ "$KSU_VERSION" == "sukisu-ultra" ]; then
-            if [ "$SuSFS_ENABLE" -eq 1 ]; then
-              echo "SukiSU-Ultra && SuSFS is enabled"
-              curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-main
-            else
               echo "SukiSU-Ultra is enabled"
               curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s nongki
-            fi
           else
             echo "KernelSU integration is skipped."
           fi
