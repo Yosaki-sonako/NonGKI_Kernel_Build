@@ -60,7 +60,7 @@ jobs:
   build:
     strategy:
       matrix:
-        kernel: [1, 2, 3, 4]
+        kernel: [1, 2, 3]
     runs-on: ubuntu-latest
     env:
       UPLOAD_TO_RELEASE: false
@@ -93,7 +93,6 @@ jobs:
             1) echo "KERNEL_TREE_BRANCH=next-main" >> $GITHUB_ENV ;;
             2) echo "KERNEL_TREE_BRANCH=next-susfs" >> $GITHUB_ENV ;;
             3) echo "KERNEL_TREE_BRANCH=no-ksu" >> $GITHUB_ENV ;;
-            4) echo "KERNEL_TREE_BRANCH=freesia" >> $GITHUB_ENV ;;
           esac
          
       - name: Checkout Kernel via PAT
@@ -121,13 +120,13 @@ jobs:
           bash nextpatch.sh
 
       - name: Change different battery type
-        if: matrix.kernel == 3 || matrix.kernel == 4
+        if: matrix.kernel == 3
         run: |
           cd kernel_tree
           sed -i -e '/qcom,j3s-batt-profile;/d' arch/arm64/boot/dts/vendor/qcom/alioth-sm8250.dtsi
 
       - name: Revert to stock gpufreq
-        if: matrix.kernel == 3 || matrix.kernel == 4
+        if: matrix.kernel == 3
         run: |
           cd kernel_tree
           patch -p1 -f < "0001-stock-gpu-freq.patch"
@@ -176,7 +175,7 @@ jobs:
           fi
           
       - name: Apply Modifications (if modified build)
-        if: matrix.kernel == 2 || matrix.kernel == 4
+        if: matrix.kernel == 2
         run: |
           cd kernel_tree
           sed -i -e '/<2553600>,/c\<2553600>;' arch/arm64/boot/dts/vendor/qcom/kona.dtsi
@@ -239,7 +238,6 @@ jobs:
           
       - name: Upload Kernel Artifacts
         uses: actions/upload-artifact@v4
-        if: matrix.kernel != 4
         with:
           name: kernel-${{ matrix.kernel }}-base
           path: |
@@ -271,15 +269,6 @@ jobs:
           path: |
             alioth-stock-dtbo-aosp.img
             alioth-normal-gpustk-dtb
-
-      - name: Upload Kernel Artifacts
-        uses: actions/upload-artifact@v4
-        if: matrix.kernel == 4
-        with:
-          name: kernel-part-${{ matrix.kernel }}-addon
-          path: |
-            alioth-stock-dtbo-miui.img
-            alioth-effcpu-gpustk-dtb
 
   package_anykernel:
     needs: build
