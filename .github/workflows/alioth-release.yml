@@ -198,6 +198,28 @@ jobs:
           cd kernel_tree
           make O=out vendor/alioth_defconfig
           make O=out CC=clang -j$(nproc --all) CROSS_COMPILE=aarch64-linux-gnu- LLVM=1 LLVM_IAS=1
+          
+          if [[ "${{ env.KPM_ENABLE }}" == "1" ]]; then
+          echo "Detected KPM enabled, applying patches..."
+          pushd out/arch/arm64/boot
+        
+          curl -LSs "https://raw.githubusercontent.com/ShirkNeko/SukiSU_patch/refs/heads/main/kpm/patch_linux" -o patch
+          chmod +x patch
+          ./patch
+          
+          if [ $? -eq 0 ]; then
+            rm -f Image
+            mv oImage Image
+            gzip -f Image
+            echo "The KPM patch was successfully applied, Image was repaired and re-compressed to Image.gz."
+          else
+            echo "::warning::KPM patch application failed, original image file will be used."
+          fi
+          popd
+          else
+          echo "KPM is not enabled (${{ env.KPM_ENABLE }}), skipping patching process."
+          fi
+        
           if [[ "${{ matrix.kernel }}" == 1 ]]; then
             cp out/arch/arm64/boot/Image.gz ../Image.gz
             mv out/arch/arm64/boot/dtbo.img ../alioth-j3s-dtbo-aosp.img
@@ -213,24 +235,6 @@ jobs:
           else
             mv out/arch/arm64/boot/dtb.img ../alioth-effcpu-gpustk-dtb
             mv out/arch/arm64/boot/dtbo.img ../alioth-stock-dtbo-miui.img
-          fi
-
-      - name: Apply KPM Patch
-        if: env.KPM_ENABLE == 1
-        run: |
-          echo "Detected KPM enabled, applying patches..."
-          cd kernel_tree/out/arch/arm64/boot
-          
-          curl -LSs "https://raw.githubusercontent.com/ShirkNeko/SukiSU_patch/refs/heads/main/kpm/patch_linux" -o patch
-          chmod +x patch
-          ./patch
-          
-          if [ $? -eq 0 ]; then
-            rm -f Image
-            mv oImage Image
-            echo "The KPM patch was successfully applied and the image file was repaired."
-          else
-            echo "::warning::KPM patch application failed, original image file will be used."
           fi
           
       - name: Upload Kernel Artifacts
