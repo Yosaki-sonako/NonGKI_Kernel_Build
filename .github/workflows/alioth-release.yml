@@ -142,24 +142,25 @@ jobs:
           sed -i -e '/CONFIG_LTO_CLANG_FULL=y/c\# CONFIG_LTO_CLANG_FULL is not set;' arch/arm64/configs/vendor/alioth_defconfig
 
 
-      - name: set kernel-additional
-         if： matrix.kernel != 3
-         run： |
+      - name: Set additional function variables)
+        if: matrix.kernel != 3
+        run: |
           cd kernel_tree
           ADDITIONAL="${{ github.event.inputs.additional_function }}"
-         if [ "$ADDITIONAL" == "susfs-kpm" ]; then
-           SuSFS_ENABLE=1
-           KPM_ENABLE=1
-           echo "Enable SuSFS and KPM"
-         elif [ "$ADDITIONAL" == "susfs" ]; then
+
+          if [ "$ADDITIONAL" == "susfs-kpm" ]; then
             SuSFS_ENABLE=1
-            echo "Enable SuSFS"
-         elif [ "$ADDITIONAL" == "kpm" ]; then
             KPM_ENABLE=1
-            echo "Enable KPM"
-         else 
-             echo "The additional function is not enabled"
-         fi
+            echo "enable SuSFS-KPM"
+          elif [ "$ADDITIONAL" == "susfs" ]; then
+            SuSFS_ENABLE=1
+            echo "enable SuSFS"
+          elif [ "$ADDITIONAL" == "kpm" ]; then
+            KPM_ENABLE=1
+            echo "enable KPM"
+          else
+            echo "The additional function is not enabled"
+          fi
         
       - name: Add KernelSU based on selection
         if: matrix.kernel != 3
