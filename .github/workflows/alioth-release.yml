@@ -187,7 +187,7 @@ jobs:
           if [[ "$ADDITIONAL" == "kpm" && "${{ matrix.kernel }}" == "1" ]]; then
           echo "Enabling KPM required kernel configurations in vendor/alioth_defconfig using sed..."
           
-          DEFCONFIG_FILE="vendor/alioth_defconfig"
+          DEFCONFIG_FILE="arch/arm64/configs/vendor/alioth_defconfig"
           sed -i \
             -e 's/^# CONFIG_KPM is not set/CONFIG_KPM=y/' \
             -e 's/^CONFIG_KPM=n/CONFIG_KPM=y/' \
