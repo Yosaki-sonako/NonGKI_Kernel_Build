@@ -199,8 +199,8 @@ jobs:
           make O=out vendor/alioth_defconfig
           make O=out CC=clang -j$(nproc --all) CROSS_COMPILE=aarch64-linux-gnu- LLVM=1 LLVM_IAS=1
           
-          if [[ "${{ env.KPM_ENABLE }}" == "1" ]]; then
-          echo "Detected KPM enabled, applying patches..."
+          if [[ "${{ env.KPM_ENABLE }}" == "1" && "${{ matrix.kernel }}" == "1" ]]; then
+          echo "Detected KPM enabled for Kernel 1, applying patches..."
           pushd out/arch/arm64/boot
         
           curl -LSs "https://raw.githubusercontent.com/ShirkNeko/SukiSU_patch/refs/heads/main/kpm/patch_linux" -o patch
