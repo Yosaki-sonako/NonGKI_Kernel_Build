@@ -1,4 +1,8 @@
 ## 项目更新日志
+- **Ver.Alioth EXL**
+    - 目前可自编译 fd和los内核 支持自定义ksu
+    - 毕竟我是小白 会的东西不多（ 
+-----------------------------
 - **Ver.1.5 Fixed 25**
     - 修正 小米Mix2s YAML cgroup v2与binder补丁执行
 
