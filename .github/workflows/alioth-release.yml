@@ -32,6 +32,7 @@ on:
       Rekernel:
         description: 'Enable rekernel(tks patch for prslc)'
         required: true
+        type: choice
         options:
           - enable
           - disable
