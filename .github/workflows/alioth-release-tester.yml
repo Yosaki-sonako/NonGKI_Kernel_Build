@@ -119,7 +119,7 @@ jobs:
           fi
       
       - name: Apply Patches
-        if: ${{ github.event.inputs.PATCH_SKIP == 'no' }}
+        if: ${{ github.event.inputs.PATCH_SKIP == 'no' && matrix.kernel != 3 }}
         run: |
           cd kernel_tree
           bash nextpatch.sh
@@ -166,42 +166,18 @@ jobs:
           cd kernel_tree
           KSU_VERSION="${{ github.event.inputs.kernelsu_version }}"
           ADDITIONAL="${{ github.event.inputs.additional_function }}"
-          SuSFS_ENABLE=0
-          if [[ "$ADDITIONAL" == "susfs" || "$ADDITIONAL" == "susfs-kpm" ]]; then
-            SuSFS_ENABLE=1
-          fi
 
           if [ "$KSU_VERSION" == "ksu" ]; then
-            echo "KSU is enabled"
-            if [ "$SuSFS_ENABLE" -eq 1 ]; then
-              echo "::error::Official KernelSU does not support SuSFS. Build failed."
-              exit 1
-            fi
             curl -LSs "https://raw.githubusercontent.com/Prslc/KernelSU/main/kernel/setup.sh" | bash -s nongki
           elif [ "$KSU_VERSION" == "rksu" ]; then
-            if [ "$SuSFS_ENABLE" -eq 1 ]; then
-              echo "RKSU && SuSFS is enabled"
-              curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s susfs-v1.5.5
-            else
               echo "RKSU is enabled"
               curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s main
-            fi
           elif [ "$KSU_VERSION" == "sukisu" ]; then
-            if [ "$SuSFS_ENABLE" -eq 1 ]; then
-              echo "SukiSU && SuSFS is enabled"
-              curl -LSs "https://raw.githubusercontent.com/ShirkNeko/KernelSU/main/kernel/setup.sh" | bash -s susfs-dev
-            else
               echo "SukiSU is enabled"
               curl -LSs "https://raw.githubusercontent.com/ShirkNeko/KernelSU/main/kernel/setup.sh" | bash -s dev
-            fi
           elif [ "$KSU_VERSION" == "sukisu-ultra" ]; then
-            if [ "$SuSFS_ENABLE" -eq 1 ]; then
-              echo "SukiSU-Ultra && SuSFS is enabled"
-              curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-main
-            else
               echo "SukiSU-Ultra is enabled"
               curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s nongki
-            fi
           else
             echo "KernelSU integration is skipped."
           fi
@@ -295,11 +271,11 @@ jobs:
         run: |
           COMPILED_DATE=$(date +%Y%m%d)
           if [[ "${{ matrix.kernel }}" == "1" ]]; then
-            echo "ZIP_NAME=[FD-][ksu-${{ github.event.inputs.CODENAME }}-$COMPILED_DATE]" >> $GITHUB_ENV
+            echo "ZIP_NAME=[FD-Sonako][ksu-${{ github.event.inputs.CODENAME }}-$COMPILED_DATE]" >> $GITHUB_ENV
           elif [[ "${{ matrix.kernel }}" == "2" ]]; then
-            echo "ZIP_NAME=[FD-][susfs-${{ github.event.inputs.CODENAME }}-$COMPILED_DATE]" >> $GITHUB_ENV
+            echo "ZIP_NAME=[FD-Sonako][susfs-${{ github.event.inputs.CODENAME }}-$COMPILED_DATE]" >> $GITHUB_ENV
           else
-            echo "ZIP_NAME=[FD-][noksu-${{ github.event.inputs.CODENAME }}-$COMPILED_DATE]" >> $GITHUB_ENV
+            echo "ZIP_NAME=[FD-Sonako][re-${{ github.event.inputs.CODENAME }}-$COMPILED_DATE]" >> $GITHUB_ENV
           fi
       
       - name: Upload Flashable Kernel Zip
