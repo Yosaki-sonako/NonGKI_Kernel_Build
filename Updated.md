@@ -1,4 +1,9 @@
 ## 项目更新日志
+- **Ver.Alioth EXL.0.1**
+    - 完善了fd内核的编译
+    - 添加kpm和rekernel(感谢prslc大佬帮我写的patch)
+    - fd内核的test内核编译修复
+ 
 - **Ver.Alioth EXL**
     - 目前可自编译 fd和los内核/157等miui修补后内核我有时间会搞 支持自定义ksu
     - 毕竟我是小白 会的东西不多（
