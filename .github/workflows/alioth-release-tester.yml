@@ -59,7 +59,7 @@ on:
           - thin_lto
         default: full_lto
       PATCH_SKIP:
-        description: 'select yes if for stable branch/Y need ksun'
+        description: 'select yes if for stable branch or Y need ksun'
         required: true
         type: choice
         options:
