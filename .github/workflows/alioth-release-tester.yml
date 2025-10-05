@@ -58,14 +58,6 @@ on:
           - full_lto
           - thin_lto
         default: full_lto
-      PATCH_SKIP:
-        description: 'SKIP KSUN (select yes if for stable branch)'
-        required: true
-        type: choice
-        options:
-          - 'yes'
-          - 'no'
-        default: 'no'
 jobs:
   build:
     strategy:
@@ -117,12 +109,6 @@ jobs:
           if [[ "${{ github.event.inputs.CUSTOM_SED }}" != "-FakeDreamer" ]]; then
             sed -i -e 's/CONFIG_LOCALVERSION="-FakeDreamer"/CONFIG_LOCALVERSION="${{ github.event.inputs.CUSTOM_SED }}"/' arch/arm64/configs/vendor/alioth_defconfig
           fi
-      
-      - name: Apply Patches
-        if: github.event.inputs.PATCH_SKIP == 'no' && matrix.kernel != 3 
-        run: |
-          cd kernel_tree
-          bash nextpatch.sh
 
       - name: Patch Kernel of Re:Kernel
         if: github.event.inputs.Rekernel == 'enable'
