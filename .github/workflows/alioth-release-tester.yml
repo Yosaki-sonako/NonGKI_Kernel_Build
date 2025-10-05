@@ -146,6 +146,12 @@ jobs:
           sed -i -e '/# CONFIG_LTO_CLANG_THIN is not set/c\CONFIG_LTO_CLANG_THIN=y;' arch/arm64/configs/vendor/alioth_defconfig
           sed -i -e '/CONFIG_LTO_CLANG_FULL=y/c\# CONFIG_LTO_CLANG_FULL is not set;' arch/arm64/configs/vendor/alioth_defconfig
 
+      - name: Apply Patches (Skip for Kernel 3)
+        if: matrix.kernel == 3
+        run: |
+          cd kernel_tree
+          bash nextpatch.sh
+          
       - name: Add KernelSU based on selection
         if: matrix.kernel != 3
         run: |
