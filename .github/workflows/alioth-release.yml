@@ -279,10 +279,6 @@ jobs:
             cp out/arch/arm64/boot/Image.gz ../Image.gz
             mv out/arch/arm64/boot/dtb.img ../alioth-normal-gpustk-dtb
             mv out/arch/arm64/boot/dtbo.img ../alioth-stock-dtbo-aosp.img
-          elif [[ "${{ matrix.kernel }}" == 4 ]]; then
-            cp out/arch/arm64/boot/Image.gz ../Image.gz
-            mv out/arch/arm64/boot/dtb.img ../alioth-normal-gpustk-dtb
-            mv out/arch/arm64/boot/dtbo.img ../alioth-stock-dtbo-aosp.img
           else
             mv out/arch/arm64/boot/dtb.img ../alioth-effcpu-gpustk-dtb
             mv out/arch/arm64/boot/dtbo.img ../alioth-stock-dtbo-miui.img
