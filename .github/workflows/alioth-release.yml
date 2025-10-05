@@ -100,6 +100,7 @@ jobs:
             1) echo "KERNEL_TREE_BRANCH=next-main" >> $GITHUB_ENV ;;
             2) echo "KERNEL_TREE_BRANCH=next-susfs" >> $GITHUB_ENV ;;
             3) echo "KERNEL_TREE_BRANCH=no-ksu" >> $GITHUB_ENV ;;
+            4) echo "KERNEL_TREE_BRANCH=no-ksu" >> $GITHUB_ENV ;;
           esac
          
       - name: Checkout Kernel via PAT
