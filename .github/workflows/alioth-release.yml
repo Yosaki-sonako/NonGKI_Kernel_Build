@@ -100,7 +100,7 @@ jobs:
             1) echo "KERNEL_TREE_BRANCH=next-main" >> $GITHUB_ENV ;;
             2) echo "KERNEL_TREE_BRANCH=next-susfs" >> $GITHUB_ENV ;;
             3) echo "KERNEL_TREE_BRANCH=no-ksu" >> $GITHUB_ENV ;;
-            4) echo "KERNEL_TREE_BRANCH=no-ksu" >> $GITHUB_ENV ;;
+            4) echo "KERNEL_TREE_BRANCH=next-main" >> $GITHUB_ENV ;;
           esac
          
       - name: Checkout Kernel via PAT
@@ -164,7 +164,7 @@ jobs:
           sed -i -e '/CONFIG_LTO_CLANG_FULL=y/c\# CONFIG_LTO_CLANG_FULL is not set;' arch/arm64/configs/vendor/alioth_defconfig
         
       - name: Add KernelSU based on selection
-        if: matrix.kernel != 3
+        if: matrix.kernel != 3 && matrix.kernel != 4
         run: |
           cd kernel_tree
           KSU_VERSION="${{ github.event.inputs.kernelsu_version }}"
@@ -286,7 +286,6 @@ jobs:
           
       - name: Upload Kernel Artifacts
         uses: actions/upload-artifact@v4
-        if: matrix.kernel != 4
         with:
           name: kernel-${{ matrix.kernel }}-base
           path: |
