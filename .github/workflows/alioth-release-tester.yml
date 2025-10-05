@@ -33,6 +33,13 @@ on:
           - aosp
           - aosp-21
         default: neutron
+      Rekernel:
+        description: 'Enable rekernel(tks patch for prslc)'
+        required: true
+        type: choice
+        options:
+          - enable
+          - disable
       kernelsu_version:
         description: 'KernelSU Version'
         required: true
@@ -112,11 +119,27 @@ jobs:
           fi
       
       - name: Apply Patches
-        if: matrix.kernel == 3
+        if: matrix.kernel != 1 && matrix.kernel != 3
         run: |
           cd kernel_tree
           bash nextpatch.sh
 
+      - name: Patch Kernel of Re:Kernel
+        if: github.event.inputs.Rekernel == 'enable'
+        run: |
+          cd kernel_tree
+          PATCH_URL="https://raw.githubusercontent.com/Yosaki-sonako/NonGKI_Kernel_Build/refs/heads/main/Patches/Rekernel/4.19_rekernel_full_alioth-fd.patch"
+          PATCH_FILENAME="4.19_rekernel_full_alioth-fd.patch"
+            echo "Downloading patch from $PATCH_URL..."
+            curl -LSsf "$PATCH_URL" -o "$PATCH_FILENAME"
+            
+          if [ $? -ne 0 ]; then
+            echo "::error::Failed to download the Re:Kernel patch file. Skipping patch application."
+            exit 1
+          fi
+            echo "Applying Re:Kernel patch..."
+            patch -p1 < "$PATCH_FILENAME" || true
+          echo "Re:Kernel Patched."
 
       - name: Change different battery type
         if: matrix.kernel == 3 || matrix.kernel == 4
