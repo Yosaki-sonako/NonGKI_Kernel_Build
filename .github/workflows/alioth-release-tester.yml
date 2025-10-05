@@ -40,6 +40,7 @@ on:
         options:
           - enable
           - disable
+        default: disable
       kernelsu_version:
         description: 'KernelSU Version'
         required: true
@@ -58,22 +59,17 @@ on:
           - full_lto
           - thin_lto
         default: full_lto
-      PATCH_SKIP:
-        description: 'select yes if for stable branch or Y need ksun'
+      BUILD_FLAGS:
+        description: 'Select patch/feature options'
         required: true
         type: choice
+        default: 'Default'
         options:
-          - 'yes'
-          - 'no'
-        default: 'no'
-      OPLUS_FEATURES:
-        description: 'select yes if you want oplus features'
-        required: true
-        type: choice
-        options:
-          - 'yes'
-          - 'no'
-        default: 'no'
+          - 'Default'               # PATCH_SKIP=no, OPLUS_FEATURES=no
+          - 'Skip_Patch_Only'       # PATCH_SKIP=yes, OPLUS_FEATURES=no
+          - 'Oplus_Features_Only'   # PATCH_SKIP=no, OPLUS_FEATURES=yes
+          - 'Skip_Patch_And_Oplus'  # PATCH_SKIP=yes, OPLUS_FEATURES=yes
+
 jobs:
   build:
     strategy:
@@ -165,13 +161,13 @@ jobs:
           sed -i -e '/CONFIG_LTO_CLANG_FULL=y/c\# CONFIG_LTO_CLANG_FULL is not set;' arch/arm64/configs/vendor/alioth_defconfig
 
       - name: Apply Patches
-        if: ${{ matrix.kernel !=1 && github.event.inputs.PATCH_SKIP == 'no' }}
+        if: ${{ matrix.kernel != 1 && !contains(github.event.inputs.BUILD_FLAGS, 'Skip_Patch') }}
         run: |
           cd kernel_tree
           bash nextpatch.sh
 
       - name: Oplus Features
-        if: ${{ github.event.inputs.OPLUS_FEATURES == 'yes' }}
+        if: ${{ contains(github.event.inputs.BUILD_FLAGS, 'Oplus_Features') }}
         run: |
           cd kernel_tree
           sed -i -e '/# CONFIG_OPLUS_PORT is not set/c\CONFIG_OPLUS_PORT=y;' arch/arm64/configs/vendor/alioth_defconfig
@@ -287,7 +283,7 @@ jobs:
         run: |
           COMPILED_DATE=$(date +%Y%m%d)
           EXTRA=""
-          if [[ "${{ github.event.inputs.OPLUS_FEATURES }}" == "yes" ]]; then
+          if [[ "${{ github.event.inputs.BUILD_FLAGS }}" == *"Oplus_Features"* ]]; then
             EXTRA="-OPLUS"
           fi
           echo "ZIP_NAME=[FD-Sonako][TEST-${{ github.event.inputs.CODENAME }}-${COMPILED_DATE}${EXTRA}]" >> $GITHUB_ENV
