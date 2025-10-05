@@ -58,6 +58,22 @@ on:
           - full_lto
           - thin_lto
         default: full_lto
+      PATCH_SKIP:
+        description: 'select yes if for stable branch/Y need ksun'
+        required: true
+        type: choice
+        options:
+          - 'yes'
+          - 'no'
+        default: 'no'
+      OPLUS_FEATURES:
+        description: 'select yes if you want oplus features'
+        required: true
+        type: choice
+        options:
+          - 'yes'
+          - 'no'
+        default: 'no'
 jobs:
   build:
     strategy:
@@ -137,7 +153,9 @@ jobs:
         if: matrix.kernel == 3 || matrix.kernel == 4
         run: |
           cd kernel_tree
-          patch -p1 -f < "0001-stock-gpu-freq.patch"
+          if [[ "${{ github.event.inputs.PATCH_SKIP }}" == "no" ]]; then
+            patch -p1 -f < "0001-stock-gpu-freq.patch"
+          fi
 
       - name: Change LTO Type
         if: ${{ github.event.inputs.LTO_CHOICE == 'thin_lto' }}
@@ -146,11 +164,17 @@ jobs:
           sed -i -e '/# CONFIG_LTO_CLANG_THIN is not set/c\CONFIG_LTO_CLANG_THIN=y;' arch/arm64/configs/vendor/alioth_defconfig
           sed -i -e '/CONFIG_LTO_CLANG_FULL=y/c\# CONFIG_LTO_CLANG_FULL is not set;' arch/arm64/configs/vendor/alioth_defconfig
 
-      - name: Apply Patches (Skip for Kernel 3)
-        if: matrix.kernel == 3
+      - name: Apply Patches
+        if: ${{ github.event.inputs.PATCH_SKIP == 'no' }}
         run: |
           cd kernel_tree
           bash nextpatch.sh
+
+      - name: Oplus Features
+        if: ${{ github.event.inputs.OPLUS_FEATURES == 'yes' }}
+        run: |
+          cd kernel_tree
+          sed -i -e '/# CONFIG_OPLUS_PORT is not set/c\CONFIG_OPLUS_PORT=y;' arch/arm64/configs/vendor/alioth_defconfig
           
       - name: Add KernelSU based on selection
         if: matrix.kernel != 3
@@ -262,13 +286,11 @@ jobs:
       - name: Define ZIP Name
         run: |
           COMPILED_DATE=$(date +%Y%m%d)
-          if [[ "${{ matrix.kernel }}" == "1" ]]; then
-            echo "ZIP_NAME=[FD-Sonako][ksu-${{ github.event.inputs.CODENAME }}-$COMPILED_DATE]" >> $GITHUB_ENV
-          elif [[ "${{ matrix.kernel }}" == "2" ]]; then
-            echo "ZIP_NAME=[FD-Sonako][susfs-${{ github.event.inputs.CODENAME }}-$COMPILED_DATE]" >> $GITHUB_ENV
-          else
-            echo "ZIP_NAME=[FD-Sonako][re-${{ github.event.inputs.CODENAME }}-$COMPILED_DATE]" >> $GITHUB_ENV
+          EXTRA=""
+          if [[ "${{ github.event.inputs.OPLUS_FEATURES }}" == "yes" ]]; then
+            EXTRA="-OPLUS"
           fi
+          echo "ZIP_NAME=[FD-Sonako][TEST-${{ github.event.inputs.CODENAME }}-${COMPILED_DATE}${EXTRA}]" >> $GITHUB_ENV
       
       - name: Upload Flashable Kernel Zip
         uses: actions/upload-artifact@v4
