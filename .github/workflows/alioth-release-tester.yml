@@ -165,7 +165,7 @@ jobs:
           sed -i -e '/CONFIG_LTO_CLANG_FULL=y/c\# CONFIG_LTO_CLANG_FULL is not set;' arch/arm64/configs/vendor/alioth_defconfig
 
       - name: Apply Patches
-        if: ${{ github.event.inputs.PATCH_SKIP == 'no' }}
+        if: ${{ matrix.kernel !=1 && github.event.inputs.PATCH_SKIP == 'no' }}
         run: |
           cd kernel_tree
           bash nextpatch.sh
