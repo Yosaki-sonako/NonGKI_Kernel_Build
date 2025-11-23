@@ -139,6 +139,23 @@ jobs:
             patch -p1 < "$PATCH_FILENAME" || true
           echo "Re:Kernel Patched."
 
+      - name: Patch Kernel of sys_reboot
+        if: ${{ matrix.kernel != 1 && !contains(github.event.inputs.BUILD_FLAGS, 'Skip_Patch') }}
+        run: |
+          cd kernel_tree
+          PATCH_URL="https://raw.githubusercontent.com/Yosaki-sonako/NonGKI_Kernel_Build/refs/heads/main/Patches/sys_reboot.patch"
+          PATCH_FILENAME="sys_reboot.patch"
+            echo "Downloading patch from $PATCH_URL..."
+            curl -LSsf "$PATCH_URL" -o "$PATCH_FILENAME"
+            
+          if [ $? -ne 0 ]; then
+            echo "::error::Failed to download the hook patch file. Skipping patch application."
+            exit 1
+          fi
+            echo "Applying sys_reboot hook patch..."
+            patch -p1 < "$PATCH_FILENAME" || true
+          echo "Patched."
+
       - name: Change different battery type
         if: matrix.kernel == 3 || matrix.kernel == 4
         run: |
