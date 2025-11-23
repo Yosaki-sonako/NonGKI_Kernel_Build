@@ -140,7 +140,7 @@ jobs:
           echo "Re:Kernel Patched."
 
       - name: Patch Kernel of sys_reboot
-        if: ${{ matrix.kernel != 1 && !contains(github.event.inputs.BUILD_FLAGS, 'Skip_Patch') }}
+        if: matrix.kernel == 1
         run: |
           cd kernel_tree
           PATCH_URL="https://raw.githubusercontent.com/Yosaki-sonako/NonGKI_Kernel_Build/refs/heads/main/Patches/sys_reboot.patch"
