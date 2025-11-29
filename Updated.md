@@ -1,4 +1,8 @@
 ## 项目更新日志
+- **Ver.Alioth EXL.0.1.1**
+    - 修复ksu2的编译问题
+    - 重构了patch和oplus内核的选择
+
 - **Ver.Alioth EXL.0.1**
     - 完善了fd内核的编译
     - 添加kpm和rekernel(感谢prslc大佬帮我写的patch)
