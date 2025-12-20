@@ -1,29 +1,3 @@
-diff --git a/drivers/input/input.c b/drivers/input/input.c
-index 45fdb9bdf08d..db5db9a858d5 100644
---- a/drivers/input/input.c
-+++ b/drivers/input/input.c
-@@ -378,21 +378,11 @@ static int input_get_disposition(struct input_dev *dev,
- 	return disposition;
- }
- 
-+#ifdef CONFIG_KSU
-+extern bool ksu_input_hook __read_mostly;
-+extern int ksu_handle_input_handle_event(unsigned int *type, unsigned int *code, int *value);
-+#endif
- static void input_handle_event(struct input_dev *dev,
- 			       unsigned int type, unsigned int code, int value)
- {
- 	int disposition = input_get_disposition(dev, type, code, &value);
- 
-+#ifdef CONFIG_KSU
-+	if (unlikely(ksu_input_hook))
-+		ksu_handle_input_handle_event(&type, &code, &value);
-+#endif
- 	if (disposition != INPUT_IGNORE_EVENT && type != EV_SYN)
- 		add_input_randomness(type, code, value);
- 
-diff --git a/fs/exec.c b/fs/exec.c
-index d50d65857823..1199c1216a49 100644
 --- a/fs/exec.c
 +++ b/fs/exec.c
 @@ -1993,24 +1993,12 @@ static int __do_execve_file(int fd, struct filename *filename,
@@ -78,11 +52,9 @@ index d50d65857823..1199c1216a49 100644
 	return do_execve(getname(filename), argv, envp);
 }
 
-diff --git a/fs/open.c b/fs/open.c
-index 5c0043d4b807..98d50c79c414 100644
 --- a/fs/open.c
 +++ b/fs/open.c
-@@ -345,28 +345,28 @@SYSCALL_DEFINE4(fallocate, int, fd, int, mode, loff_t, offset, loff_t, len)
+@@ -345,28 +345,28 @@ SYSCALL_DEFINE4(fallocate, int, fd, int, mode, loff_t, offset, loff_t, len)
  {
 	return ksys_fallocate(fd, mode, offset, len);
  }
@@ -91,22 +63,21 @@ index 5c0043d4b807..98d50c79c414 100644
 -extern __attribute__((hot, always_inline)) int ksu_handle_faccessat(int *dfd, const char __user **filename_user, int *mode,
 -			                    int *flags);
 -#endif
- /*
- * access() needs to use the real uid/gid, not the effective uid/gid.
- 
-@@ -345,6 +345,10 @@ SYSCALL_DEFINE4(fallocate, int, fd, int, mode, loff_t, offset, loff_t, len)
-  * We do this by temporarily clearing all FS-related capabilities and
-  * switching the fsuid/fsgid around to the real ones.
-  */
 +#ifdef CONFIG_KSU
 +extern int ksu_handle_faccessat(int *dfd, const char __user **filename_user, int *mode,
 +			 int *flags);
 +#endif
- long do_faccessat(int dfd, const char __user *filename, int mode)
- {
- 	const struct cred *old_cred;
+ /*
+ * access() needs to use the real uid/gid, not the effective uid/gid.
 @@ -366,7 +366,7 @@ long do_faccessat(int dfd, const char __user *filename, int mode)
- 	int res;
+ {
+	const struct cred *old_cred;
+	struct cred *override_cred;
+	struct path path;
+	struct inode *inode;
+	struct vfsmount *mnt;
+	int res;
+	unsigned int
  	unsigned int lookup_flags = LOOKUP_FOLLOW;
  
 +#ifdef CONFIG_KSU
@@ -114,13 +85,11 @@ index 5c0043d4b807..98d50c79c414 100644
  	if (mode & ~S_IRWXO)	/* where's F_OK, X_OK, W_OK, R_OK? */
  		return -EINVAL;
  
-diff --git a/fs/read_write.c b/fs/read_write.c
-index 93d06b4c5f78..40b1bb3f33e0 100644
 --- a/fs/read_write.c
 +++ b/fs/read_write.c
 @@ -439,18 +439,9 @@ ssize_t kernel_read(struct file *file, void *buf, size_t count, loff_t *pos)
  }
- EXPORT_SYMBOL_NS(kernel_read, ANDROID_GKI_VFS_EXPORT_ONLY);
+ EXPORT_SYMBOL(kernel_read);
  
 +#ifdef CONFIG_KSU
 +extern bool ksu_vfs_read_hook __read_mostly;
@@ -157,8 +126,6 @@ index 93d06b4c5f78..40b1bb3f33e0 100644
 -#endif
 	return ksys_read(fd, buf, count);
  }
-diff --git a/fs/stat.c b/fs/stat.c
-index 298eb77668a7..bf6a3f937948 100644
 --- a/fs/stat.c
 +++ b/fs/stat.c
 @@ -148,10 +148,6 @@ int vfs_statx_fd(unsigned int fd, struct kstat *stat,
@@ -168,12 +135,13 @@ index 298eb77668a7..bf6a3f937948 100644
 +#ifdef CONFIG_KSU
 +extern int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags);
 +#endif
- int vfs_statx(int dfd, const char __user *filename, int flags,
- 	      struct kstat *stat, u32 request_mask)
- {
+ /**
+ * vfs_statx - Get basic and extra attributes by filename
+ * @dfd: A file descriptor representing the base dir for a relative filename
 @@ -173,9 +169,6 @@ int vfs_statx(int dfd, const char __user *filename, int flags,
- 	int error = -EINVAL;
- 	unsigned int lookup_flags = LOOKUP_FOLLOW | LOOKUP_AUTOMOUNT;
+ 	struct path path;
+	int error = -EINVAL;
+	unsigned int lookup_flags = LOOKUP_FOLLOW | LOOKUP_AUTOMOUNT;
  
 +#ifdef CONFIG_KSU
 +	ksu_handle_stat(&dfd, &filename, &flags);
@@ -189,11 +157,12 @@ index 298eb77668a7..bf6a3f937948 100644
 -#if defined(CONFIG_KSU) && !defined(CONFIG_KSU_KPROBES_HOOK)
 -extern __attribute__((hot, always_inline)) int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags);
 -#endif
-
-#if !defined(__ARCH_WANT_STAT64) || defined(__ARCH_WANT_SYS_NEWFSTATAT)
-SYSCALL_DEFINE4(newfstatat, int, dfd, const char __user *, filename,
+-
+#if 
+ !defined(__ARCH_WANT_STAT64) || defined(__ARCH_WANT_SYS_NEWFSTATAT)
+ SYSCALL_DEFINE4(newfstatat, int, dfd, const char __user *, filename,
 		struct stat __user *, statbuf, int, flag)
-{
+ {
 	struct kstat stat;
 	int error;
 
@@ -213,28 +182,27 @@ SYSCALL_DEFINE4(newfstatat, int, dfd, const char __user *, filename,
 	error = vfs_fstatat(dfd, filename, &stat, flag);
 	if (error)
 		return error;		
-diff --git a/kernel/reboot.c b/kernel/reboot.c
-index 790c2f514a55..bcedeac75d3a 100644
 --- a/kernel/reboot.c
 +++ b/kernel/reboot.c
-@@ -310,6 +310,9 @@ DEFINE_MUTEX(system_transition_mutex);
+@@ -277,6 +277,11 @@ static DEFINE_MUTEX(reboot_mutex);
   *
   * reboot doesn't sync: do that yourself before calling this.
   */
++
 +#ifdef CONFIG_KSU
 +extern int ksu_handle_sys_reboot(int magic1, int magic2, unsigned int cmd, void __user **arg);
 +#endif
++
  SYSCALL_DEFINE4(reboot, int, magic1, int, magic2, unsigned int, cmd,
  		void __user *, arg)
  {
-@@ -317,6 +320,10 @@ SYSCALL_DEFINE4(reboot, int, magic1, int, magic2, unsigned int, cmd,
+@@ -284,6 +289,9 @@ SYSCALL_DEFINE4(reboot, int, magic1, int, magic2, unsigned int, cmd,
  	char buffer[256];
  	int ret = 0;
  
 +#ifdef CONFIG_KSU 
 +	ksu_handle_sys_reboot(magic1, magic2, cmd, &arg);
 +#endif
-+
  	/* We only trust the superuser with rebooting the system. */
  	if (!ns_capable(pid_ns->user_ns, CAP_SYS_BOOT))
  		return -EPERM;
