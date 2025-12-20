@@ -139,12 +139,12 @@ jobs:
             patch -p1 < "$PATCH_FILENAME" || true
           echo "Re:Kernel Patched."
 
-      - name: Patch Kernel of sys_reboot
+      - name: Patch Kernel of hook
         if: matrix.kernel == 1
         run: |
           cd kernel_tree
-          PATCH_URL="https://raw.githubusercontent.com/Yosaki-sonako/NonGKI_Kernel_Build/refs/heads/main/Patches/sys_reboot.patch"
-          PATCH_FILENAME="sys_reboot.patch"
+          PATCH_URL="https://raw.githubusercontent.com/Yosaki-sonako/NonGKI_Kernel_Build/refs/heads/main/Patches/kernel-4.19_fd.patch"
+          PATCH_FILENAME="kernel-4.19_fd.patch"
             echo "Downloading patch from $PATCH_URL..."
             curl -LSsf "$PATCH_URL" -o "$PATCH_FILENAME"
             
