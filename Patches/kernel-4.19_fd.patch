@@ -98,11 +98,10 @@ index 5c0043d4b807..98d50c79c414 100644
 -extern __attribute__((hot, always_inline)) int ksu_handle_faccessat(int *dfd, const char __user **filename_user, int *mode,
 -			                    int *flags);
 -#endif
-/*
+ /*
  * access() needs to use the real uid/gid, not the effective uid/gid.
  
 @@ -345,6 +345,10 @@ SYSCALL_DEFINE4(fallocate, int, fd, int, mode, loff_t, offset, loff_t, len)
-
   * We do this by temporarily clearing all FS-related capabilities and
   * switching the fsuid/fsgid around to the real ones.
   */
