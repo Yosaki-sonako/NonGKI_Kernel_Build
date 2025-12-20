@@ -60,7 +60,7 @@ index d50d65857823..1199c1216a49 100644
  
 @@ -2104,11 +2092,26 @@ void set_dumpable(struct mm_struct *mm, int value)
  	 } while (cmpxchg(&mm->flags, old, new) != old);
-}
+	 }
 
 -#if defined(CONFIG_KSU) && !defined(CONFIG_KSU_KPROBES_HOOK)
 -extern bool ksu_execveat_hook __read_mostly;
