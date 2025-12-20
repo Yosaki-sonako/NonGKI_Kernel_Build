@@ -70,7 +70,7 @@ index d50d65857823..1199c1216a49 100644
 -extern int ksu_handle_execve_ksud(const char __user *filename_user,
 -			const char __user *const __user *__argv);
 -#endif
-
+-
  SYSCALL_DEFINE3(execve,
 		const char __user *, filename,
 		const char __user *const __user *, argv,
