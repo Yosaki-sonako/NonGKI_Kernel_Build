@@ -114,6 +114,8 @@ jobs:
             REPO_URL="${{ github.event.inputs.KERNEL_TREE_1 }}"
           fi
           git clone --depth=1 --branch "${{ env.KERNEL_TREE_BRANCH }}" "${REPO_URL}" kernel_tree
+          cd kernel_tree
+          rm drivers/kernelsu
 
       - name: Kernel Version
         run: |
