@@ -148,7 +148,7 @@ index 93d06b4c5f78..40b1bb3f33e0 100644
  
 @@ -599,8 +590,18 @@ ssize_t ksys_read(unsigned int fd, char __user *buf, size_t count)
 	return ret;
-}
+ }
 
 -#if defined(CONFIG_KSU) && !defined(CONFIG_KSU_KPROBES_HOOK)
 -extern bool ksu_vfs_read_hook __read_mostly;
@@ -162,7 +162,7 @@ SYSCALL_DEFINE3(read, unsigned int, fd, char __user *, buf, size_t, count)
 -		ksu_handle_sys_read(fd, &buf, &count);
 -#endif
 	return ksys_read(fd, buf, count);
-}
+ }
 diff --git a/fs/stat.c b/fs/stat.c
 index 298eb77668a7..bf6a3f937948 100644
 --- a/fs/stat.c
