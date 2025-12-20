@@ -152,7 +152,7 @@ jobs:
             echo "::error::Failed to download the hook patch file. Skipping patch application."
             exit 1
           fi
-            echo "Applying sys_reboot hook patch..."
+            echo "Applying kernelsu hook patch..."
             patch -p1 < "$PATCH_FILENAME" || true
           echo "Patched."
 
