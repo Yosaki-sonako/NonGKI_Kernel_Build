@@ -186,7 +186,7 @@
 		return error;		
 --- a/kernel/reboot.c
 +++ b/kernel/reboot.c
-@@ -277,11 +277,6 @@ static DEFINE_MUTEX(reboot_mutex);
+@@ -277,6 +277,11 @@ static DEFINE_MUTEX(reboot_mutex);
   *
   * reboot doesn't sync: do that yourself before calling this.
   */
