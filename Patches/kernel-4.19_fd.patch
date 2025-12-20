@@ -1,7 +1,6 @@
 --- a/fs/exec.c
 +++ b/fs/exec.c
-@@ -1993,24 +1993,12 @@ static int __do_execve_file(int fd, struct filename *filename,
-		putname(filename);
+@@ -1993,12 +1993,24 @@ putname(filename);
 	return retval;
  }
  
@@ -28,7 +27,7 @@
  	return __do_execve_file(fd, filename, argv, envp, flags, NULL);
  }
  
-@@ -2104,11 +2092,26 @@ void set_dumpable(struct mm_struct *mm, int value)
+@@ -2104,26 +2092,11 @@ void set_dumpable(struct mm_struct *mm, int value)
  	 } while (cmpxchg(&mm->flags, old, new) != old);
 	 }
 
@@ -90,7 +89,7 @@
  
 --- a/fs/read_write.c
 +++ b/fs/read_write.c
-@@ -439,18 +439,9 @@ ssize_t kernel_read(struct file *file, void *buf, size_t count, loff_t *pos)
+@@ -439,9 +439,18 @@ ssize_t kernel_read(struct file *file, void *buf, size_t count, loff_t *pos)
  }
  EXPORT_SYMBOL(kernel_read);
  
@@ -111,7 +110,7 @@
  		return -EBADF;
  	if (!(file->f_mode & FMODE_CAN_READ))
  
-@@ -599,8 +590,18 @@ ssize_t ksys_read(unsigned int fd, char __user *buf, size_t count)
+@@ -599,18 +590,8 @@ ssize_t ksys_read(unsigned int fd, char __user *buf, size_t count)
 	return ret;
  }
 
@@ -131,7 +130,7 @@
  }
 --- a/fs/stat.c
 +++ b/fs/stat.c
-@@ -148,10 +148,6 @@ int vfs_statx_fd(unsigned int fd, struct kstat *stat,
+@@ -148,6 +148,10 @@ int vfs_statx_fd(unsigned int fd, struct kstat *stat,
  } 
  EXPORT_SYMBOL(vfs_statx_fd);
  );
@@ -141,7 +140,7 @@
  /**
  * vfs_statx - Get basic and extra attributes by filename
  * @dfd: A file descriptor representing the base dir for a relative filename
-@@ -173,9 +169,6 @@ int vfs_statx(int dfd, const char __user *filename, int flags,
+@@ -173,6 +169,9 @@ int vfs_statx(int dfd, const char __user *filename, int flags,
  	struct path path;
 	int error = -EINVAL;
 	unsigned int lookup_flags = LOOKUP_FOLLOW | LOOKUP_AUTOMOUNT;
@@ -153,7 +152,7 @@
  	if ((flags & ~(AT_SYMLINK_NOFOLLOW | AT_NO_AUTOMOUNT |
  		       AT_EMPTY_PATH | KSTAT_QUERY_FLAGS)) != 0)
  		return -EINVAL;
-@@ -359,13 +352,20 @@ SYSCALL_DEFINE2(newlstat, const char __user *, filename,
+@@ -359,20 +352,13 @@ SYSCALL_DEFINE2(newlstat, const char __user *, filename,
 	return cp_new_stat(&stat, statbuf);
 	}
 
@@ -187,7 +186,7 @@
 		return error;		
 --- a/kernel/reboot.c
 +++ b/kernel/reboot.c
-@@ -277,6 +277,11 @@ static DEFINE_MUTEX(reboot_mutex);
+@@ -277,11 +277,6 @@ static DEFINE_MUTEX(reboot_mutex);
   *
   * reboot doesn't sync: do that yourself before calling this.
   */
